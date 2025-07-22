@@ -1,4 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Astro Library
+
+A comprehensive library management system for astronomers to organize and showcase their astrophotography work.
+
+## Features
+
+- Project management for astrophotography work
+- Source tracking (lights, calibrations, etc.)
+- Processing descriptions and results
+- Dashboard/catalogue with search by image type and palette
+- Sharing capabilities for galleries, projects, and individual images
+
+## Tech Stack
+
+- Next.js
+- TypeScript
+- TailwindCSS
+- shadcn/ui
+- CVA (Class Variance Authority)
+- Firebase (Authentication, Firestore, Storage)
+- TanStack Query
+- Zustand
 
 ## Getting Started
 
@@ -6,28 +27,30 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+/src
+  /app - Next.js app router pages
+  /components
+    /ui - shadcn/ui components
+    /layout - Layout components
+    /features - Feature-specific components
+  /hooks - Custom React hooks
+  /lib - Utility libraries
+    /firebase - Firebase configuration
+  /store - Zustand stores
+  /types - TypeScript type definitions
+  /utils - Utility functions
+```
 
-## Learn More
+## License
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Private
 
 ## Deploy on Vercel
 
