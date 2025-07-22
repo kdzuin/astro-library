@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pencil, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
-import { getProjectById, deleteProject, Project } from '@/structures/projects';
+import { getProjectById, deleteProject } from '@/lib/server/projects';
 import { toast } from 'sonner';
 import {
     AlertDialog,
@@ -20,9 +20,10 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Project } from '@/schemas/project';
 
-export default function ProjectPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const router = useRouter();
     const { user } = useAuth();
     const [project, setProject] = useState<Project | null>(null);
@@ -95,8 +96,8 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
             <div className="container mx-auto py-8">
                 <h1 className="text-3xl font-semibold mb-6">Project Not Found</h1>
                 <p className="mb-4">
-                    The project you're looking for doesn't exist or you don't have permission to
-                    view it.
+                    The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have
+                    permission to view it.
                 </p>
                 <Button asChild>
                     <Link href="/projects">
@@ -160,8 +161,8 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
                                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                 <AlertDialogDescription>
                                     This action cannot be undone. This will permanently delete the
-                                    project <strong>"{project.name}"</strong> and all of its
-                                    associated data.
+                                    project <strong>&quot;{project.name}&quot;</strong> and all of
+                                    its associated data.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

@@ -1,4 +1,3 @@
-// Firebase configuration
 // Replace these values with your actual Firebase project configuration
 // You'll need to create a Firebase project and enable Authentication and Firestore
 

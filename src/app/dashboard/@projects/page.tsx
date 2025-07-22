@@ -3,29 +3,45 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
-import { getProjectsByUserId, Project } from '@/structures/projects';
+import { auth } from '@/lib/firebase/config';
+import { Project } from '@/schemas/project';
 
 export default function Projects() {
     const { user } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function loadProjects() {
             if (!user) {
-                setLoading(false);
                 return;
             }
 
             try {
-                const userProjects = await getProjectsByUserId(user.id);
-                setProjects(userProjects);
+                // Get the current user's ID token
+                const idToken = await auth.currentUser?.getIdToken(true);
+
+                if (!idToken) {
+                    throw new Error('Authentication token not available');
+                }
+
+                // Fetch projects from the API route with the ID token
+                const response = await fetch('/api/projects', {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to fetch projects');
+                }
+
+                const data = await response.json();
+                setProjects(data.projects);
             } catch (error) {
                 console.error('Error loading projects:', error);
             } finally {
-                setLoading(false);
             }
         }
 
@@ -34,35 +50,18 @@ export default function Projects() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Your Projects</h2>
-                <Button asChild size="sm" variant="outline">
-                    <Link href="/projects/add">
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        Add Project
-                    </Link>
-                </Button>
-            </div>
-
-            {loading ? (
-                <p className="text-muted-foreground">Loading projects...</p>
-            ) : projects.length === 0 ? (
+            {projects.length === 0 ? (
                 <p className="text-muted-foreground">
                     You don&apos;t have any projects yet. Create your first project to get started.
                 </p>
             ) : (
-                <ul className="space-y-2">
+                <div className="flex gap-2">
                     {projects.map((project) => (
-                        <li key={project.id} className="border-b pb-2">
-                            <Link
-                                href={`/projects/${project.id}`}
-                                className="text-primary hover:underline block"
-                            >
-                                {project.name}
-                            </Link>
-                        </li>
+                        <Button asChild key={project.id}>
+                            <Link href={`/projects/${project.id}`}>{project.name}</Link>
+                        </Button>
                     ))}
-                </ul>
+                </div>
             )}
         </div>
     );

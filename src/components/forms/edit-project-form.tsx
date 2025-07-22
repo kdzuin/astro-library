@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { getProjectById, updateProject } from '@/structures/projects';
+import { getProjectById, updateProject } from '@/lib/server/projects';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 

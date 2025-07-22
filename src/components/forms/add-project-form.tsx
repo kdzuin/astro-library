@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { createProject } from '@/structures/projects';
+import { createProject } from '@/lib/server/projects';
 import { toast } from 'sonner';
 
 export function AddProjectForm() {
@@ -29,6 +29,7 @@ export function AddProjectForm() {
             await createProject({
                 name: projectName,
                 userId: user.id,
+                visibility: 'private',
             });
 
             toast.success('Project created successfully');

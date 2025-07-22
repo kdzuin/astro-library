@@ -1,4 +1,7 @@
-import { db } from '../lib/firebase/config';
+'use server';
+
+import { Project } from '@/schemas/project';
+import { db } from '../firebase/config';
 import {
     collection,
     addDoc,
@@ -11,14 +14,6 @@ import {
     where,
     serverTimestamp,
 } from 'firebase/firestore';
-
-export interface Project {
-    id?: string;
-    name: string;
-    userId: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-}
 
 const PROJECTS_COLLECTION = 'projects';
 
@@ -60,6 +55,7 @@ export async function getProjectsByUserId(userId: string): Promise<Project[]> {
                 userId: data.userId,
                 createdAt: data.createdAt?.toDate(),
                 updatedAt: data.updatedAt?.toDate(),
+                visibility: data.visibility,
             };
         });
     } catch (error) {
@@ -84,6 +80,7 @@ export async function getProjectById(projectId: string): Promise<Project | null>
                 userId: data.userId,
                 createdAt: data.createdAt?.toDate(),
                 updatedAt: data.updatedAt?.toDate(),
+                visibility: data.visibility,
             };
         } else {
             return null;
