@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { useAuth } from '@/lib/auth/auth-context';
+import { useAuth } from '@/lib/client/auth/auth-context';
 import { toast } from 'sonner';
 import { ArrowRight } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
-import { auth } from '@/lib/firebase/config';
+import { auth } from '@/lib/client/firebase/config';
 import { Project } from '@/schemas/project';
 
 // Helper function to safely format dates

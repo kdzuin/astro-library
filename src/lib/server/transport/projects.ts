@@ -1,7 +1,7 @@
 'use server';
 
 import { Project } from '@/schemas/project';
-import { db } from '../firebase/config';
+import { db } from '@/lib/client/firebase/config';
 import {
     collection,
     addDoc,

@@ -3,17 +3,20 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/auth/auth-context';
-import { auth } from '@/lib/firebase/config';
+import { useAuth } from '@/lib/client/auth/auth-context';
+import { auth } from '@/lib/client/firebase/config';
 import { Project } from '@/schemas/project';
 
 export default function Projects() {
     const { user } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
+    const [isLoading, setLoading] = useState(false);
 
     useEffect(() => {
         async function loadProjects() {
+            setLoading(true);
             if (!user) {
+                setLoading(false);
                 return;
             }
 
@@ -42,11 +45,16 @@ export default function Projects() {
             } catch (error) {
                 console.error('Error loading projects:', error);
             } finally {
+                setLoading(false);
             }
         }
 
         loadProjects();
     }, [user]);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div>

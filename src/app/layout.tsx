@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { Geist, Geist_Mono } from 'next/font/google';
 
-import { AuthProvider } from '@/lib/auth/auth-context';
+import { AuthProvider } from '@/lib/client/auth/auth-context';
 import { AuthGuard } from '@/components/layout/auth-guard';
 import { Toaster } from '@/components/ui/sonner';
 

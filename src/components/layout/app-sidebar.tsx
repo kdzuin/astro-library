@@ -14,9 +14,9 @@ import {
     SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { FolderKanban, LayoutDashboard } from 'lucide-react';
-import { useAuth } from '@/lib/auth/auth-context';
+import { useAuth } from '@/lib/client/auth/auth-context';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
+import { auth } from '@/lib/client/firebase/config';
 import { usePathname, useRouter } from 'next/navigation';
 import { NavUser } from '@/components/layout/nav-user';
 import Link from 'next/link';

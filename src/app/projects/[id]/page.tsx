@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pencil, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '@/lib/auth/auth-context';
-import { getProjectById, deleteProject } from '@/lib/server/projects';
+import { useAuth } from '@/lib/client/auth/auth-context';
+import { auth } from '@/lib/client/firebase/config';
 import { toast } from 'sonner';
 import {
     AlertDialog,
@@ -38,22 +38,35 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             }
 
             try {
-                const projectData = await getProjectById(id);
-
-                if (!projectData) {
-                    toast.error('Project not found');
-                    router.push('/projects');
+                // Get the current user's ID token
+                const idToken = await auth.currentUser?.getIdToken();
+                if (!idToken) {
+                    toast.error('Authentication required');
                     return;
                 }
 
-                // Check if user owns this project
-                if (projectData.userId !== user.id) {
-                    toast.error('You do not have permission to view this project');
-                    router.push('/projects');
+                // Call the API to get the project
+                const response = await fetch(`/api/projects/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        toast.error('Project not found');
+                        router.push('/projects');
+                    } else if (response.status === 403) {
+                        toast.error('You do not have permission to view this project');
+                        router.push('/projects');
+                    } else {
+                        throw new Error('Failed to load project');
+                    }
                     return;
                 }
 
-                setProject(projectData);
+                const data = await response.json();
+                setProject(data.project);
             } catch (error) {
                 console.error('Error loading project:', error);
                 toast.error('Failed to load project');
@@ -70,7 +83,27 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
         try {
             setIsDeleting(true);
-            await deleteProject(project.id);
+
+            // Get the current user's ID token
+            const idToken = await auth.currentUser?.getIdToken();
+            if (!idToken) {
+                toast.error('Authentication required');
+                return;
+            }
+
+            // Call the API to delete the project
+            const response = await fetch(`/api/projects/${project.id}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${idToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to delete project');
+            }
+
             toast.success('Project deleted successfully');
             router.push('/projects');
         } catch (error) {
@@ -167,20 +200,18 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                    onClick={handleDelete}
-                                    disabled={isDeleting}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                    {isDeleting ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                            Deleting...
-                                        </>
-                                    ) : (
-                                        'Delete Project'
-                                    )}
-                                </AlertDialogAction>
+                                <Button variant="destructive" asChild>
+                                    <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                                        {isDeleting ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                Deleting...
+                                            </>
+                                        ) : (
+                                            'Delete Project'
+                                        )}
+                                    </AlertDialogAction>
+                                </Button>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>

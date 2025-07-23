@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth/auth-context';
+import { useAuth } from '@/lib/client/auth/auth-context';
 import { SignIn } from '@/components/features/auth/sign-in';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/app-sidebar';
@@ -51,7 +51,7 @@ export function AuthGuard({ children, sidebarInitialState }: AuthLayoutProps) {
         <SidebarProvider defaultOpen={sidebarInitialState}>
             <div className="flex min-h-screen w-full">
                 <AppSidebar />
-                <main className="flex-1 w-full px-6 py-4">{children}</main>
+                <main className="flex-1 w-full px-6 py-4 pe-15">{children}</main>
             </div>
         </SidebarProvider>
     );

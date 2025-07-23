@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { deleteProject, getProjectById, updateProject } from '@/lib/server/projects';
-import { verifyAuthToken } from '@/lib/firebase/admin-auth';
+import { deleteProject, getProjectById, updateProject } from '@/lib/server/transport/projects';
+import { verifyAuthToken } from '@/lib/server/firebase/admin-auth';
 import { projectSchema } from '@/schemas/project';
 import z from 'zod';
 

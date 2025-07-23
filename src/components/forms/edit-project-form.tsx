@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth/auth-context';
-import { getProjectById, updateProject } from '@/lib/server/projects';
+import { useAuth } from '@/lib/client/auth/auth-context';
+import { auth } from '@/lib/client/firebase/config';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -31,19 +31,35 @@ export function EditProjectForm({ projectId }: EditProjectFormProps) {
             }
 
             try {
-                const project = await getProjectById(projectId);
-
-                if (!project) {
-                    setError('Project not found');
+                // Get the current user's ID token
+                const idToken = await auth.currentUser?.getIdToken();
+                if (!idToken) {
+                    setError('Authentication token not available');
                     return;
                 }
-
-                // Check if the user owns this project
-                if (user && project.userId !== user.id) {
-                    setError('You do not have permission to edit this project');
+                
+                // Call the API to get the project
+                const response = await fetch(`/api/projects/${projectId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${idToken}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        setError('Project not found');
+                    } else if (response.status === 403) {
+                        setError('You do not have permission to edit this project');
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to load project');
+                    }
                     return;
                 }
-
+                
+                const data = await response.json();
+                const project = data.project;
+                
                 setProjectName(project.name);
             } catch (error) {
                 console.error('Error loading project:', error);
@@ -71,10 +87,29 @@ export function EditProjectForm({ projectId }: EditProjectFormProps) {
 
         try {
             setIsSubmitting(true);
-
-            await updateProject(projectId, {
-                name: projectName,
+            
+            // Get the current user's ID token
+            const idToken = await auth.currentUser?.getIdToken();
+            if (!idToken) {
+                throw new Error('Authentication token not available');
+            }
+            
+            // Call the API to update the project
+            const response = await fetch(`/api/projects/${projectId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({
+                    name: projectName,
+                })
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update project');
+            }
 
             toast.success('Project updated successfully');
 
