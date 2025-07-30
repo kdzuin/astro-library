@@ -1,85 +1,135 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getProjectsByUserId, createProject } from '@/lib/server/transport/projects';
-import { verifyAuthToken } from '@/lib/server/firebase/admin-auth';
-import { projectSchema } from '@/schemas/project';
-import z from 'zod';
+import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/server/auth/with-auth';
+import { createProjectSchema, type Project } from '@/schemas/project';
+import { getDb } from '@/lib/server/firebase/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 
-export async function GET(request: NextRequest) {
+// GET /api/projects - Fetch all projects for current user
+export const GET = withAuth(async (request, context, user) => {
     try {
-        // Get the authorization header
-        const authHeader = request.headers.get('Authorization');
-        const token = authHeader?.split('Bearer ')[1];
-
-        // If no token, user is not authenticated
-        if (!token) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        const db = await getDb();
+        
+        // 1. Get user's project references
+        const userDoc = await db.collection('users').doc(user.id).get();
+        const userData = userDoc.data();
+        const projectIds = userData?.projects || [];
+        
+        if (projectIds.length === 0) {
+            return NextResponse.json({ 
+                success: true,
+                data: [],
+                count: 0
+            });
         }
-
-        // Verify the Firebase ID token and get the user ID
-        const userId = await verifyAuthToken(token);
-
-        if (!userId) {
-            return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
-        }
-
-        // Fetch projects for the authenticated user
-        const rawProjects = await getProjectsByUserId(userId);
-
-        // Parse and transform the projects using Zod schema
-        const validatedProjects = z.array(projectSchema).parse(rawProjects);
-
-        // Return the validated and serialized projects as JSON
-        return NextResponse.json({ projects: validatedProjects });
+        
+        // 2. Batch fetch all user's projects
+        const projectRefs = projectIds.map((id: string) => db.collection('projects').doc(id));
+        const projectDocs = await db.getAll(...projectRefs);
+        
+        // 3. Process and sort projects
+        const projects: Project[] = projectDocs
+            .filter(doc => doc.exists)
+            .map(doc => {
+                const data = doc.data()!;
+                return {
+                    id: doc.id,
+                    ...data,
+                    // Convert Firestore timestamps to Date objects
+                    createdAt: data.createdAt?.toDate() || new Date(),
+                    updatedAt: data.updatedAt?.toDate() || new Date(),
+                } as Project;
+            })
+            .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()); // Sort by updatedAt desc
+        
+        return NextResponse.json({ 
+            success: true,
+            data: projects,
+            count: projects.length
+        });
     } catch (error) {
         console.error('Error fetching projects:', error);
-        return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
+        return NextResponse.json(
+            { success: false, error: 'Failed to fetch projects' },
+            { status: 500 }
+        );
     }
-}
-
-// Schema for project creation request
-const createProjectSchema = z.object({
-    name: z.string().min(1, 'Project name is required'),
-    visibility: z.enum(['public', 'private']).default('private'),
 });
 
-export async function POST(request: NextRequest) {
+// POST /api/projects - Create new project
+export const POST = withAuth(async (request, context, user) => {
     try {
-        // Get the authorization header
-        const authHeader = request.headers.get('Authorization');
-        const token = authHeader?.split('Bearer ')[1];
-
-        // If no token, user is not authenticated
-        if (!token) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-        }
-
-        // Verify the Firebase ID token and get the user ID
-        const userId = await verifyAuthToken(token);
-
-        if (!userId) {
-            return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
-        }
-
-        // Parse and validate the request body
         const body = await request.json();
-        const validatedData = createProjectSchema.parse(body);
-
-        // Create the project
-        const projectId = await createProject({
-            ...validatedData,
-            userId,
+        
+        // Validate input using Zod schema
+        const validatedData = createProjectSchema.parse({
+            ...body,
+            userId: user.id, // Ensure project belongs to current user
         });
-
-        // Return the project ID
-        return NextResponse.json({ id: projectId }, { status: 201 });
+        
+        const db = await getDb();
+        
+        // Use batch to create project and update user references atomically
+        const batch = db.batch();
+        
+        // 1. Create the project document
+        const projectRef = db.collection('projects').doc();
+        batch.set(projectRef, {
+            ...validatedData,
+            userId: user.id,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+        });
+        
+        // 2. Add project ID to user's projects array
+        const userRef = db.collection('users').doc(user.id);
+        batch.update(userRef, {
+            projects: FieldValue.arrayUnion(projectRef.id),
+            updatedAt: FieldValue.serverTimestamp(),
+        });
+        
+        // 3. Commit the batch
+        await batch.commit();
+        
+        // 4. Fetch the created document to return it
+        const createdDoc = await projectRef.get();
+        const createdData = createdDoc.data()!;
+        
+        const project: Project = {
+            id: createdDoc.id,
+            ...createdData,
+            // Convert Firestore timestamps to Date objects for response
+            createdAt: createdData.createdAt?.toDate() || new Date(),
+            updatedAt: createdData.updatedAt?.toDate() || new Date(),
+        } as Project;
+        
+        return NextResponse.json(
+            { 
+                success: true,
+                data: project,
+                message: 'Project created successfully'
+            },
+            { status: 201 }
+        );
     } catch (error) {
         console.error('Error creating project:', error);
         
-        // Handle validation errors
-        if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: error.errors }, { status: 400 });
+        if (error instanceof Error && error.name === 'ZodError') {
+            return NextResponse.json(
+                { 
+                    success: false,
+                    error: 'Invalid input data', 
+                    details: error.message 
+                },
+                { status: 400 }
+            );
         }
         
-        return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
+        return NextResponse.json(
+            { 
+                success: false,
+                error: 'Failed to create project' 
+            },
+            { status: 500 }
+        );
     }
-}
+});

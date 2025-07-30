@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
 import { Geist, Geist_Mono } from 'next/font/google';
-
-import { AuthProvider } from '@/lib/client/auth/auth-context';
-import { AuthGuard } from '@/components/layout/auth-guard';
 import { Toaster } from '@/components/ui/sonner';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/layout/app-sidebar';
+import { getCurrentUser } from '@/lib/server/auth/utils';
 
 import './globals.css';
 
@@ -30,19 +29,31 @@ export default async function RootLayout({
     children: React.ReactNode;
     modal: React.ReactNode;
 }) {
-    const cookieStore = await cookies();
-    const sidebarInitialState = cookieStore.get('sidebar_state')?.value === 'true';
+    const user = await getCurrentUser();
 
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <AuthProvider>
-                    <AuthGuard sidebarInitialState={sidebarInitialState}>
+                {user ? (
+                    // Authenticated layout with sidebar
+                    <SidebarProvider defaultOpen={true}>
+                        <div className="flex min-h-screen w-full">
+                            <AppSidebar user={user} />
+                            <main className="flex-1 w-full px-6 py-4 pe-15">
+                                {children}
+                                {modal}
+                            </main>
+                        </div>
+                        <Toaster />
+                    </SidebarProvider>
+                ) : (
+                    // Unauthenticated layout (simple)
+                    <>
                         {children}
                         {modal}
                         <Toaster />
-                    </AuthGuard>
-                </AuthProvider>
+                    </>
+                )}
             </body>
         </html>
     );

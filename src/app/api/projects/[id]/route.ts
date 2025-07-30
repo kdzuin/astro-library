@@ -1,149 +1,179 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { deleteProject, getProjectById, updateProject } from '@/lib/server/transport/projects';
-import { verifyAuthToken } from '@/lib/server/firebase/admin-auth';
-import { projectSchema } from '@/schemas/project';
-import z from 'zod';
+import { NextResponse } from 'next/server';
+import { withAuth, withOptionalAuth } from '@/lib/server/auth/with-auth';
+import { getDb } from '@/lib/server/firebase/firestore';
+import { Project, updateProjectSchema } from '@/schemas/project';
+import { FieldValue } from 'firebase-admin/firestore';
 
-// Schema for validating project updates
-const projectUpdateSchema = projectSchema.omit({
-    id: true,
-    userId: true,
-    createdAt: true,
-    updatedAt: true,
-});
-
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+// GET /api/projects/[id] - Get a specific project
+export const GET = withOptionalAuth(async (request, context, user) => {
+    const id = context.params?.id as string;
+    
+    if (!id) {
+        return NextResponse.json(
+            { success: false, error: 'Project ID is required' },
+            { status: 400 }
+        );
+    }
+    
     try {
-        // Get the authorization header
-        const authHeader = request.headers.get('Authorization');
-        const token = authHeader?.split('Bearer ')[1];
-
-        // If no token, user is not authenticated
-        if (!token) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        const db = await getDb();
+        const projectRef = db.collection('projects').doc(id);
+        const doc = await projectRef.get();
+        
+        if (!doc.exists) {
+            return NextResponse.json(
+                { success: false, error: 'Project not found' },
+                { status: 404 }
+            );
         }
-
-        // Verify the Firebase ID token and get the user ID
-        const userId = await verifyAuthToken(token);
-
-        if (!userId) {
-            return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
+        
+        const projectData = doc.data();
+        if (!projectData) {
+            return NextResponse.json(
+                { success: false, error: 'Project data not found' },
+                { status: 404 }
+            );
         }
-
-        // Fetch the project
-        const project = await getProjectById(params.id);
-
-        // If project doesn't exist
+        
+        // Check if user has access to this project
+        const isOwner = user && projectData.userId === user.id;
+        const isCollaborator = user && projectData.collaborators?.includes(user.id);
+        const isPublic = projectData.visibility === 'public';
+        
+        if (!isPublic && !isOwner && !isCollaborator) {
+            return NextResponse.json(
+                { success: false, error: 'Access denied' },
+                { status: 403 }
+            );
+        }
+        
+        const project: Project = {
+            id: doc.id,
+            ...projectData,
+            createdAt: projectData.createdAt?.toDate() || new Date(),
+            updatedAt: projectData.updatedAt?.toDate() || new Date(),
+        } as Project;
+        
         if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+            return NextResponse.json(
+                { success: false, error: 'Project not found' },
+                { status: 404 }
+            );
         }
-
-        // Check if user owns the project
-        if (project.userId !== userId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+        
+        // Check if user owns this project (redundant with Firestore subcollection, but good practice)
+        if (project.userId !== user.id) {
+            return NextResponse.json(
+                { success: false, error: 'Forbidden' },
+                { status: 403 }
+            );
         }
-
-        // Return the project
-        return NextResponse.json({ project });
+        
+        return NextResponse.json({ 
+            success: true,
+            data: project 
+        });
     } catch (error) {
         console.error('Error fetching project:', error);
-        return NextResponse.json({ error: 'Failed to fetch project' }, { status: 500 });
+        return NextResponse.json(
+            { success: false, error: 'Failed to fetch project' },
+            { status: 500 }
+        );
     }
-}
+});
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+// PUT /api/projects/[id] - Update project
+export const PUT = withAuth(async (request, context, user) => {
     try {
-        // Get the authorization header
-        const authHeader = request.headers.get('Authorization');
-        const token = authHeader?.split('Bearer ')[1];
-
-        // If no token, user is not authenticated
-        if (!token) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-        }
-
-        // Verify the Firebase ID token and get the user ID
-        const userId = await verifyAuthToken(token);
-
-        if (!userId) {
-            return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
-        }
-
-        // Get the project to check ownership
-        const existingProject = await getProjectById(params.id);
-
-        // If project doesn't exist
-        if (!existingProject) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-        }
-
-        // Check if user owns the project
-        if (existingProject.userId !== userId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-        }
-
-        // Parse and validate the request body
+        const { id } = context.params!;
         const body = await request.json();
-        const validatedUpdates = projectUpdateSchema.parse(body);
-
+        
+        // Validate input using Zod schema
+        const validatedData = updateProjectSchema.parse({
+            ...body,
+            id,
+        });
+        
+        // TODO: Replace with actual database query and update
+        // This is a placeholder - you'll need to implement your database layer
+        // First, check if project exists and belongs to user
+        const existingProject: Project | null = null;
+        
+        if (!existingProject) {
+            return NextResponse.json(
+                { error: 'Project not found' },
+                { status: 404 }
+            );
+        }
+        
+        if (existingProject.userId !== user.id) {
+            return NextResponse.json(
+                { error: 'Forbidden' },
+                { status: 403 }
+            );
+        }
+        
         // Update the project
-        await updateProject(params.id, validatedUpdates);
-
-        // Return success response
-        return NextResponse.json({ success: true });
+        const updatedProject: Project = {
+            ...existingProject,
+            ...validatedData,
+            updatedAt: new Date(),
+        };
+        
+        return NextResponse.json({ project: updatedProject });
     } catch (error) {
         console.error('Error updating project:', error);
-
-        // Handle validation errors
-        if (error instanceof z.ZodError) {
+        
+        if (error instanceof Error && error.name === 'ZodError') {
             return NextResponse.json(
-                { error: 'Invalid project data', details: error.errors },
+                { error: 'Invalid input data', details: error.message },
                 { status: 400 }
             );
         }
-
-        return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
+        
+        return NextResponse.json(
+            { error: 'Failed to update project' },
+            { status: 500 }
+        );
     }
-}
+});
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+// DELETE /api/projects/[id] - Delete project
+export const DELETE = withAuth(async (request, context, user) => {
     try {
-        // Get the authorization header
-        const authHeader = request.headers.get('Authorization');
-        const token = authHeader?.split('Bearer ')[1];
-
-        // If no token, user is not authenticated
-        if (!token) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-        }
-
-        // Verify the Firebase ID token and get the user ID
-        const userId = await verifyAuthToken(token);
-
-        if (!userId) {
-            return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
-        }
-
-        // Get the project to check ownership
-        const existingProject = await getProjectById(params.id);
-
-        // If project doesn't exist
+        const { id } = context.params!;
+        
+        // TODO: Replace with actual database query and deletion
+        // This is a placeholder - you'll need to implement your database layer
+        // First, check if project exists and belongs to user
+        const existingProject: Project | null = null;
+        
         if (!existingProject) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+            return NextResponse.json(
+                { error: 'Project not found' },
+                { status: 404 }
+            );
         }
-
-        // Check if user owns the project
-        if (existingProject.userId !== userId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+        
+        if (existingProject.userId !== user.id) {
+            return NextResponse.json(
+                { error: 'Forbidden' },
+                { status: 403 }
+            );
         }
-
+        
         // Delete the project
-        await deleteProject(params.id);
-
-        // Return success response
-        return NextResponse.json({ success: true });
+        // await deleteProject(id);
+        
+        return NextResponse.json(
+            { message: 'Project deleted successfully' },
+            { status: 200 }
+        );
     } catch (error) {
         console.error('Error deleting project:', error);
-        return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Failed to delete project' },
+            { status: 500 }
+        );
     }
-}
+});

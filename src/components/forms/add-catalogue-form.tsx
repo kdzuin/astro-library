@@ -1,16 +1,8 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
     Form,
     FormControl,
@@ -19,76 +11,72 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
-const addProjectFormSchema = z.object({
-    name: z
-        .string('Please provide the name of the project, that would be used as a title')
-        .min(3, 'Project name must be at least 3 characters long'),
+const addCatalogueFormSchema = z.object({
+    name: z.string().min(3, 'Catalogue name must be at least 3 characters long'),
     description: z.string().optional(),
-    visibility: z.enum(['private', 'public']),
-    tags: z.string().optional(), // Comma-separated tags
+    abbreviation: z
+        .string()
+        .min(1, 'Abbreviation is required')
+        .max(10, 'Abbreviation must be 10 characters or less'),
+    prefix: z.string().optional(),
 });
 
-export type AddProjectFormSchema = z.infer<typeof addProjectFormSchema>;
+export type AddCatalogueFormSchema = z.infer<typeof addCatalogueFormSchema>;
 
-export default function AddProjectForm() {
+export default function AddCatalogueForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    const form = useForm<AddProjectFormSchema>({
-        resolver: zodResolver(addProjectFormSchema),
+    const form = useForm<AddCatalogueFormSchema>({
+        resolver: zodResolver(addCatalogueFormSchema),
         defaultValues: {
-            visibility: 'private',
+            name: '',
             description: '',
-            tags: '',
+            abbreviation: '',
+            prefix: '',
         },
     });
 
-    const onSubmit = async (data: AddProjectFormSchema) => {
+    const onSubmit = async (data: AddCatalogueFormSchema) => {
         setIsLoading(true);
         setError(null);
 
         try {
             // Transform form data to match API schema
-            const projectData = {
+            const catalogueData = {
                 name: data.name,
                 description: data.description || '',
-                visibility: data.visibility,
-                tags: data.tags
-                    ? data.tags
-                          .split(',')
-                          .map((tag) => tag.trim())
-                          .filter(Boolean)
-                    : [],
-                status: 'planning' as const,
-                sessions: {},
-                processingNotes: '',
-                processingImageUrls: [],
-                finalImageUrls: [],
-                collectionIds: [],
+                abbreviation: data.abbreviation,
+                prefix: data.prefix || '',
+                type: 'user' as const,
+                objectCount: 0,
             };
 
-            const response = await fetch('/api/projects', {
+            const response = await fetch('/api/catalogues', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(projectData),
+                body: JSON.stringify(catalogueData),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create project');
+                throw new Error(errorData.error || 'Failed to create catalogue');
             }
 
             await response.json();
 
-            // Navigate to the new project or projects list
-            router.push('/projects');
+            // Navigate to catalogues list
+            router.push('/catalogues');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
@@ -110,10 +98,46 @@ export default function AddProjectForm() {
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Project Name</FormLabel>
+                            <FormLabel>Catalogue Name</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="e.g. NGC7000 — North America Nebula"
+                                    placeholder="e.g. My Deep Sky Objects"
+                                    disabled={isLoading}
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="abbreviation"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Abbreviation</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="e.g. MDSO, KDZ, etc."
+                                    disabled={isLoading}
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="prefix"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Object Prefix (Optional)</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="e.g. MDSO, KDZ (for object designations like MDSO-1, KDZ-42)"
                                     disabled={isLoading}
                                     {...field}
                                 />
@@ -131,58 +155,10 @@ export default function AddProjectForm() {
                             <FormLabel>Description (Optional)</FormLabel>
                             <FormControl>
                                 <Textarea
-                                    placeholder="Describe your project, target details, goals, etc."
+                                    placeholder="Describe the purpose and contents of this catalogue..."
                                     disabled={isLoading}
                                     {...field}
                                 />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="tags"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Tags (Optional)</FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="e.g. nebula, emission, summer, widefield (comma-separated)"
-                                    disabled={isLoading}
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="visibility"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Project Visibility</FormLabel>
-                            <FormControl>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    disabled={isLoading}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select visibility" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="private">
-                                            Private - Only you can see this project
-                                        </SelectItem>
-                                        <SelectItem value="public">
-                                            Public - Anyone can view this project
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -192,13 +168,13 @@ export default function AddProjectForm() {
                 <div className="flex gap-4">
                     <Button type="submit" disabled={isLoading} className="flex-1">
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isLoading ? 'Creating...' : 'Create Project'}
+                        {isLoading ? 'Creating...' : 'Create Catalogue'}
                     </Button>
                     <Button
                         type="button"
                         variant="outline"
                         disabled={isLoading}
-                        onClick={() => router.push('/projects')}
+                        onClick={() => router.push('/catalogues')}
                     >
                         Cancel
                     </Button>

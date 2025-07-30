@@ -1,14 +1,10 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { use } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Pencil, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '@/lib/client/auth/auth-context';
-import { auth } from '@/lib/client/firebase/config';
-import { toast } from 'sonner';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -24,123 +20,15 @@ import { Project } from '@/schemas/project';
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
-    const router = useRouter();
-    const { user } = useAuth();
-    const [project, setProject] = useState<Project | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [isDeleting, setIsDeleting] = useState(false);
 
-    useEffect(() => {
-        async function loadProject() {
-            if (!id || !user) {
-                setLoading(false);
-                return;
-            }
-
-            try {
-                // Get the current user's ID token
-                const idToken = await auth.currentUser?.getIdToken();
-                if (!idToken) {
-                    toast.error('Authentication required');
-                    return;
-                }
-
-                // Call the API to get the project
-                const response = await fetch(`/api/projects/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${idToken}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        toast.error('Project not found');
-                        router.push('/projects');
-                    } else if (response.status === 403) {
-                        toast.error('You do not have permission to view this project');
-                        router.push('/projects');
-                    } else {
-                        throw new Error('Failed to load project');
-                    }
-                    return;
-                }
-
-                const data = await response.json();
-                setProject(data.project);
-            } catch (error) {
-                console.error('Error loading project:', error);
-                toast.error('Failed to load project');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadProject();
-    }, [id, user, router]);
-
-    const handleDelete = async () => {
-        if (!project) return;
-
-        try {
-            setIsDeleting(true);
-
-            // Get the current user's ID token
-            const idToken = await auth.currentUser?.getIdToken();
-            if (!idToken) {
-                toast.error('Authentication required');
-                return;
-            }
-
-            // Call the API to delete the project
-            const response = await fetch(`/api/projects/${project.id}`, {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to delete project');
-            }
-
-            toast.success('Project deleted successfully');
-            router.push('/projects');
-        } catch (error) {
-            console.error('Error deleting project:', error);
-            toast.error('Failed to delete project');
-        } finally {
-            setIsDeleting(false);
-        }
+    const project: Project = {
+        id: id,
+        userId: 'asdf',
+        name: 'Project name',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        visibility: 'private',
     };
-
-    if (loading) {
-        return (
-            <div className="container mx-auto py-8">
-                <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                </div>
-            </div>
-        );
-    }
-
-    if (!project) {
-        return (
-            <div className="container mx-auto py-8">
-                <h1 className="text-3xl font-semibold mb-6">Project Not Found</h1>
-                <p className="mb-4">
-                    The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have
-                    permission to view it.
-                </p>
-                <Button asChild>
-                    <Link href="/projects">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Projects
-                    </Link>
-                </Button>
-            </div>
-        );
-    }
 
     return (
         <div className="container mx-auto py-8">
@@ -155,25 +43,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-3xl">{project.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                        Created:{' '}
-                        {project.createdAt
-                            ? new Date(project.createdAt).toLocaleDateString()
-                            : 'Unknown'}
-                    </p>
+                    <CardTitle className="text-3xl">{id}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <div>
-                            <h3 className="text-lg font-medium">Project Details</h3>
-                            <p className="text-muted-foreground">
-                                This is where additional project details will be displayed in the
-                                future.
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
+                <CardContent></CardContent>
                 <CardFooter className="flex justify-between">
                     <Button asChild variant="outline">
                         <Link href={`/projects/${project.id}/edit`}>
@@ -201,16 +73,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <Button variant="destructive" asChild>
-                                    <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                                        {isDeleting ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                                Deleting...
-                                            </>
-                                        ) : (
-                                            'Delete Project'
-                                        )}
-                                    </AlertDialogAction>
+                                    <AlertDialogAction>Delete Project</AlertDialogAction>
                                 </Button>
                             </AlertDialogFooter>
                         </AlertDialogContent>

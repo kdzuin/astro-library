@@ -13,12 +13,11 @@ import {
     SidebarMenuItem,
     SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { FolderKanban, LayoutDashboard } from 'lucide-react';
-import { useAuth } from '@/lib/client/auth/auth-context';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/client/firebase/config';
-import { usePathname, useRouter } from 'next/navigation';
+import { Database, FolderKanban, LayoutDashboard, LucideSparkle } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { NavUser } from '@/components/layout/nav-user';
+import { AuthService } from '@/lib/client/auth/auth-service';
+import { User } from '@/schemas/user';
 import Link from 'next/link';
 
 // Menu items
@@ -33,27 +32,25 @@ const items = [
         url: '/projects',
         icon: FolderKanban,
     },
-    // {
-    //     title: 'Sources',
-    //     url: '/sources',
-    //     icon: Database,
-    // },
-    // {
-    //     title: 'Sessions',
-    //     url: '/sessions',
-    //     icon: Calendar,
-    // },
+    {
+        title: 'Catalogues',
+        url: '/catalogues',
+        icon: Database,
+    },
 ];
 
-export function AppSidebar() {
-    const { user } = useAuth();
-    const router = useRouter();
+interface AppSidebarProps {
+    user: User;
+}
+
+export function AppSidebar({ user }: AppSidebarProps) {
     const currentPathname = usePathname();
 
     const handleSignOut = async () => {
         try {
-            await signOut(auth);
-            router.push('/');
+            await AuthService.signOut();
+            // Force a full page refresh to update server-side auth state
+            window.location.href = '/';
         } catch (error) {
             console.error('Error signing out:', error);
         }
@@ -63,11 +60,18 @@ export function AppSidebar() {
         <>
             <SidebarTrigger className="absolute end-4 top-4" />
 
-            <Sidebar>
+            <Sidebar collapsible="icon">
                 <SidebarHeader>
-                    <div className="flex items-center px-2">
-                        <div className="text-lg font-semibold">Astro Library</div>
-                    </div>
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton asChild>
+                                <Link href="/">
+                                    <LucideSparkle />
+                                    <span className="text-lg font-semibold">Astro Library</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
                 </SidebarHeader>
                 <SidebarContent>
                     <SidebarGroup>
@@ -95,15 +99,17 @@ export function AppSidebar() {
                     <NavUser
                         handleSignOut={handleSignOut}
                         user={{
-                            name: user?.displayName || '',
-                            initials:
-                                user?.displayName
-                                    ?.split(' ')
-                                    .map((name) => name[0])
-                                    .join('') || '',
-                            email: user?.email || '',
-                            avatar: user?.photoURL || '',
-                            id: user?.id || '',
+                            name: user.displayName || user.email.split('@')[0] || 'User',
+                            initials: user.displayName
+                                ? user.displayName
+                                      .split(' ')
+                                      .map((name) => name[0])
+                                      .join('')
+                                      .toUpperCase()
+                                : user.email.charAt(0).toUpperCase(),
+                            email: user.email,
+                            avatar: user.photoURL || '',
+                            id: user.id,
                         }}
                     />
                 </SidebarFooter>

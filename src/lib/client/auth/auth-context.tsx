@@ -27,10 +27,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Convert Firebase user to our User type
                 const user: User = {
                     id: firebaseUser.uid,
-                    email: firebaseUser.email || '',
+                    email: firebaseUser.email!,
                     displayName: firebaseUser.displayName || undefined,
                     photoURL: firebaseUser.photoURL || undefined,
-                    createdAt: new Date(firebaseUser.metadata.creationTime || Date.now()),
+                    projects: [],
+                    collaboratingProjects: [],
+                    favoriteProjects: [],
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
                 };
                 setUser(user);
             } else {

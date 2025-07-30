@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/client/firebase/config';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 export function SignIn() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
@@ -19,8 +21,26 @@ export function SignIn() {
             provider.setCustomParameters({
                 prompt: 'select_account',
             });
-            await signInWithPopup(auth, provider);
-            // The user should be redirected or the UI updated via the AuthContext
+            
+            const userCredential = await signInWithPopup(auth, provider);
+            const idToken = await userCredential.user.getIdToken();
+            
+            // Create server session using our AuthService
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ idToken }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to create session');
+            }
+            
+            // Redirect to dashboard after successful login
+            router.push('/dashboard');
+            router.refresh(); // Refresh to update server-side state
         } catch (error) {
             console.error('Error signing in with Google:', error);
             setError('Failed to sign in with Google. Please try again.');
