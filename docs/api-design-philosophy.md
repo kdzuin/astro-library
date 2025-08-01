@@ -2,263 +2,323 @@
 
 ## Overview
 
-This document outlines the API design philosophy for the Astronomy Library, specifically addressing how to handle many-to-many relationships with Firestore as the backend database.
+This document outlines the API design philosophy for the Astronomy Library, covering authentication patterns, data storage strategies, and API response design using Firebase Admin SDK and Next.js App Router.
 
-## Core Philosophy: Denormalized API Responses
+## Current Architecture
 
-### Storage Strategy (Firestore)
-- **Store normalized references** (IDs) in Firestore documents
-- **Use subcollections** for one-to-many relationships where appropriate
-- **Store arrays of IDs** for many-to-many relationships
+### Authentication System
 
-### API Response Strategy
-- **Return denormalized data** with populated relationships
-- **API does the heavy lifting** of joining and populating data
-- **Clients receive complete objects** in single requests
+**Server-Side Session Management**
 
-## Why Denormalized API Responses?
+-   **HTTP-only cookies** for session storage (immune to XSS attacks)
+-   **Firebase Admin SDK** for server-side token verification
+-   **Middleware-based route protection** for automatic authentication
+-   **Server Actions** and **Server Components** for enhanced security
 
-### 1. **Client Simplicity**
 ```typescript
-// ✅ What clients get (denormalized) - Project with session data
-{
-  "id": "proj_456",
-  "name": "NGC 7000 - North America Nebula",
-  "catalogueDesignation": "NGC 7000",
-  "sessions": {
-    "2024-07-15": {
-      "date": "2024-07-15",
-      "totalExposureTime": 180,
-      "filters": [
-        { "name": "Ha", "exposureTime": 300, "frameCount": 20, "totalTime": 100 },
-        { "name": "OIII", "exposureTime": 300, "frameCount": 16, "totalTime": 80 }
-      ],
-      "equipment": [
-        { "id": "eq_111", "name": "Canon EOS Ra", "category": "camera" },
-        { "id": "eq_222", "name": "Celestron EdgeHD 11", "category": "telescope" }
-      ]
-    },
-    "2024-07-20": { /* another session */ }
-  }
+// Authentication utilities
+export async function requireAuth(): Promise<User> {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Authentication required');
+    return user;
 }
 
-// ❌ What clients would get (normalized) - requires multiple requests
-{
-  "id": "proj_456",
-  "name": "NGC 7000",
-  "sessions": {
-    "2024-07-15": {
-      "equipmentIds": ["eq_111", "eq_222"]
-    }
-  }
+// API route protection
+export const GET = withAuth(async (request, context, user) => {
+    // Authenticated route logic
+});
+```
+
+### Data Storage Strategy (Firestore)
+
+**Global Collections with User Ownership**
+
+-   **Global `/projects` collection** with `userId` field for ownership
+-   **User references** stored in user documents for efficient lookup
+-   **Firebase Admin SDK** for server-side database operations
+-   **Atomic operations** for data consistency
+
+```typescript
+// Current storage pattern
+/projects/{projectId} {
+  userId: "user123",
+  name: "NGC 7000",
+  sessions: { /* embedded session data */ },
+  collaborators: ["user456"], // Future collaboration support
+  // ... other fields
 }
 ```
 
-### 2. **Performance Benefits**
-- **Fewer round trips** - One request gets complete data
-- **Better caching** - Complete objects can be cached effectively
-- **Mobile-friendly** - Reduces network requests for mobile clients
+### API Response Strategy
 
-### 3. **Multi-Client Support**
-- **Rich data** for web, mobile, and future clients
-- **Consistent experience** across all platforms
-- **Easier client development** - no complex joining logic needed
+**Denormalized Responses with Server-Side Population**
+
+-   **Complete objects** returned in single requests
+-   **Server-side data joining** using Firebase Admin SDK
+-   **Consistent response format** across all endpoints
+-   **Error handling** with proper HTTP status codes
+
+## Core Design Principles
+
+### 1. **Server-First Architecture**
+
+```typescript
+// Server Component with direct data access
+export default async function ProjectsPage() {
+    const user = await requireAuth();
+    const projects = await getUserProjects(user.id);
+
+    return (
+        <div>
+            {projects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+            ))}
+        </div>
+    );
+}
+
+// Server Action for data mutations
+async function refreshProjects() {
+    'use server';
+    revalidatePath('/projects');
+}
+```
+
+### 2. **Transport Layer Pattern**
+
+**Centralized Data Operations**
+
+-   **`/lib/server/transport/`** for all data access functions
+-   **Firebase Admin SDK** for server-side operations
+-   **Proper error handling** and logging
+-   **TypeScript integration** with Zod schemas
+
+```typescript
+// Transport layer example
+export async function getUserProjects(userId: string): Promise<Project[]> {
+    try {
+        const db = await getDb();
+        const projectDocs = await db
+            .collection('projects')
+            .where('userId', '==', userId)
+            .orderBy('updatedAt', 'desc')
+            .get();
+
+        return projectDocs.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt?.toDate() || new Date(),
+            updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+        })) as Project[];
+    } catch (error) {
+        console.error('Error fetching user projects:', error);
+        return [];
+    }
+}
+```
+
+### 3. **API Route Protection**
+
+**Consistent Authentication Patterns**
+
+-   **`withAuth`** for routes requiring authentication
+-   **`withOptionalAuth`** for routes with optional authentication
+-   **Proper error responses** for unauthorized access
+-   **User context** passed to all handlers
+
+```typescript
+// Protected API route
+export const GET = withAuth(async (request, context, user) => {
+    try {
+        const projects = await getUserProjects(user.id);
+        return NextResponse.json({
+            success: true,
+            data: projects,
+            count: projects.length,
+        });
+    } catch (error) {
+        return NextResponse.json(
+            { success: false, error: 'Failed to fetch projects' },
+            { status: 500 }
+        );
+    }
+});
+```
 
 ## Data Relationships
 
-### One-to-Many Relationships
+### Project-Centric Architecture
 
-#### Projects → Session Data
+**Embedded Session Data**
+
 ```typescript
-// In Firestore
-Project: {
+// Project document structure
+{
   id: "proj_123",
-  name: "NGC 7000",
+  userId: "user123",
+  name: "NGC 7000 - North America Nebula",
   sessions: {
     "2024-07-15": {
       date: "2024-07-15",
       totalExposureTime: 180,
+      numberOfFrames: 36,
+      filters: [
+        { name: "Ha", exposureTime: 300, frameCount: 20 },
+        { name: "OIII", exposureTime: 300, frameCount: 16 }
+      ],
       equipmentIds: ["eq_camera", "eq_telescope"],
-      filters: [/* filter data */],
-      notes: "Great night, excellent seeing"
-    },
-    "2024-07-20": {
-      date: "2024-07-20",
-      totalExposureTime: 240,
-      equipmentIds: ["eq_camera", "eq_telescope", "eq_mount"]
+      seeing: 3,
+      transparency: 4,
+      notes: "Excellent conditions"
     }
-  }
-}
-
-// API Response - Project with populated session equipment
-GET /api/projects/proj_123
-{
-  "id": "proj_123",
-  "name": "NGC 7000",
-  "sessions": {
-    "2024-07-15": {
-      "date": "2024-07-15",
-      "totalExposureTime": 180,
-      "equipment": [ /* populated equipment objects */ ]
-    }
-  }
-}
-
-// Query session data across multiple projects
-GET /api/projects?sessionDate=2024-07-15
-```
-
-### Many-to-Many Relationships
-
-#### Projects ↔ Equipment (via Session Data)
-```typescript
-// In Firestore - Equipment referenced in session data within projects
-Project: {
-  id: "proj_456",
-  sessions: {
-    "2024-07-15": {
-      equipmentIds: ["eq_camera", "eq_telescope", "eq_mount"]
-    }
-  }
-}
-
-Equipment: {
-  id: "eq_camera",
-  // No back-reference needed - query projects with sessions containing this equipment
-}
-
-// API Response - Equipment usage populated in session data
-GET /api/projects/proj_456
-{
-  "id": "proj_456",
-  "sessions": {
-    "2024-07-15": {
-      "date": "2024-07-15",
-      "equipment": [
-        { "id": "eq_camera", "name": "Canon EOS Ra", /* ... */ },
-        { "id": "eq_telescope", "name": "Celestron EdgeHD 11", /* ... */ },
-        { "id": "eq_mount", "name": "Sky-Watcher EQ6-R", /* ... */ }
-      ]
-    }
-  }
+  },
+  catalogueDesignation: "NGC 7000",
+  tags: ["nebula", "emission"],
+  visibility: "private",
+  status: "active"
 }
 ```
 
-### One-to-Many Relationships
+### Collection References
 
-#### Projects → Collections
+**Reference-Based Relationships**
+
 ```typescript
-// In Firestore
-Collection: {
-  id: "col_123",
-  projectIds: ["proj_456", "proj_789"]
-}
-
-Project: {
-  id: "proj_456",
-  collectionIds: ["col_123", "col_999"] // Can belong to multiple collections
-}
-
-// API Response
-GET /api/collections/col_123
+// Collections reference projects
 {
-  "id": "col_123",
-  "projects": [
-    { /* full project objects */ }
-  ]
+  id: "col_summer2024",
+  userId: "user123",
+  name: "Summer 2024 Projects",
+  projectIds: ["proj_123", "proj_456"]
 }
 ```
 
-## API Endpoint Patterns
+## API Response Patterns
 
-### Standard CRUD with Population
+### Standard Response Format
 
 ```typescript
-// GET /api/projects - List with minimal population
+// Success response
 {
-  "data": [
-    {
-      "id": "proj_123",
-      "name": "NGC 7000",
-      "catalogue": { "name": "NGC", "designation": "NGC 7000" }, // Populated
-      "sessionCount": 5, // Aggregated
-      "collections": [/* populated collections */]
-    }
-  ]
+  "success": true,
+  "data": [...],
+  "count": 5,
+  "message": "Projects fetched successfully"
 }
 
-// GET /api/projects/proj_123 - Full details with all relationships
+// Error response
 {
-  "data": {
-    "id": "proj_123",
-    "name": "NGC 7000",
-    "catalogue": { /* full catalogue object */ },
-    "collections": [/* full collection objects */],
-    "recentSessions": [/* last 5 sessions */],
-    "equipmentUsed": [/* aggregated equipment */]
+  "success": false,
+  "error": "Authentication required",
+  "code": "AUTH_REQUIRED"
+}
+```
+
+### Pagination and Filtering
+
+```typescript
+// Query parameters
+GET /api/projects?limit=10&offset=0&status=active&tags=nebula
+
+// Response with pagination
+{
+  "success": true,
+  "data": [...],
+  "pagination": {
+    "total": 25,
+    "limit": 10,
+    "offset": 0,
+    "hasMore": true
   }
 }
 ```
 
-### Query Parameters for Population Control
+## Performance Considerations
+
+### Caching Strategy
+
+**Next.js Built-in Caching**
+
+-   **Server Component caching** for static data
+-   **`revalidatePath()`** for targeted cache invalidation
+-   **Server Actions** for optimistic updates
 
 ```typescript
-// GET /api/sessions?populate=projects,equipment
-// GET /api/sessions?populate=none (IDs only)
-// GET /api/sessions?populate=all (full population)
+// Cache revalidation
+async function updateProject(projectId: string, data: UpdateProjectInput) {
+    'use server';
+
+    await updateProjectInDb(projectId, data);
+    revalidatePath('/projects');
+    revalidatePath(`/projects/${projectId}`);
+}
 ```
 
-## Firestore Implementation Strategy
+### Database Optimization
 
-### Document Structure
+**Firestore Best Practices**
+
+-   **Composite indexes** for complex queries
+-   **Batch operations** for multiple updates
+-   **Proper field selection** to minimize data transfer
+-   **Connection pooling** via Firebase Admin SDK
+
 ```typescript
-// Collections
-/users/{userId}/projects/{projectId}
-/users/{userId}/sessions/{sessionId}
-/users/{userId}/equipment/{equipmentId}
-/users/{userId}/collections/{collectionId}
-/catalogues/{catalogueId} // Global catalogues
-
-// Indexes needed for queries
-// - sessions: projectIds array-contains
-// - projects: collectionIds array-contains
-// - sessions: equipmentIds array-contains
+// Optimized query with indexes
+const projects = await db
+    .collection('projects')
+    .where('userId', '==', userId)
+    .where('status', '==', 'active')
+    .orderBy('updatedAt', 'desc')
+    .limit(20)
+    .get();
 ```
 
-### Query Patterns
+## Security Considerations
+
+### Authentication Security
+
+-   **HTTP-only cookies** prevent XSS attacks
+-   **Server-side token verification** ensures authenticity
+-   **Middleware protection** for automatic route guarding
+-   **Session expiration** handling with proper cleanup
+
+### Data Access Control
+
 ```typescript
-// Find all sessions for a project
-db.collection('users').doc(userId)
-  .collection('sessions')
-  .where('projectIds', 'array-contains', projectId)
+// Access control example
+export const GET = withOptionalAuth(async (request, context, user) => {
+    const project = await getProjectById(projectId);
 
-// Find all equipment used in sessions
-const sessionEquipmentIds = sessions.flatMap(s => s.equipmentIds);
-const equipment = await Promise.all(
-  sessionEquipmentIds.map(id => getEquipment(id))
-);
+    // Check access permissions
+    const isOwner = user && project.userId === user.id;
+    const isCollaborator = user && project.collaborators?.includes(user.id);
+    const isPublic = project.visibility === 'public';
+
+    if (!isPublic && !isOwner && !isCollaborator) {
+        return NextResponse.json({ success: false, error: 'Access denied' }, { status: 403 });
+    }
+
+    return NextResponse.json({ success: true, data: project });
+});
 ```
 
-## Benefits of This Approach
+## Migration and Evolution
 
-1. **Developer Experience** - Clients get rich, complete data
-2. **Performance** - Single requests for complex data
-3. **Caching** - Complete objects cache well
-4. **Flexibility** - API can control what to populate
-5. **Future-Proof** - Easy to add new clients
-6. **Firestore Optimized** - Leverages document model strengths
+### Schema Evolution
 
-## Trade-offs
+**Backward Compatibility**
 
-### Pros
-- ✅ Better client experience
-- ✅ Fewer network requests
-- ✅ Easier client development
-- ✅ Better caching
+-   **Optional fields** for new features
+-   **Default values** for missing properties
+-   **Migration scripts** for major changes
+-   **Versioned API endpoints** when necessary
 
-### Cons
-- ❌ More complex API logic
-- ❌ Larger response sizes
-- ❌ More Firestore reads per request
+### Future Considerations
 
-**Conclusion**: For an astronomy library with many-to-many relationships and plans for multiple clients, the benefits of denormalized API responses significantly outweigh the costs.
+-   **Real-time updates** via Firestore listeners
+-   **Collaboration features** with shared projects
+-   **Advanced caching** with Redis or similar
+-   **GraphQL integration** for complex queries
+
+This architecture provides a solid foundation for the astronomy library while maintaining security, performance, and developer experience as core priorities.

@@ -36,7 +36,7 @@ export async function clearExpiredSession(): Promise<boolean> {
  */
 export async function handleSessionExpiration(redirectToLogin = true): Promise<void> {
     await clearExpiredSession();
-    
+
     if (redirectToLogin && typeof window !== 'undefined') {
         // Redirect to login page
         window.location.href = '/';
@@ -48,7 +48,7 @@ export async function handleSessionExpiration(redirectToLogin = true): Promise<v
  */
 export function isAuthRequiredPage(): boolean {
     if (typeof window === 'undefined') return false;
-    
-    const authRequiredPaths = ['/dashboard', '/projects', '/equipment', '/catalogues'];
-    return authRequiredPaths.some(path => window.location.pathname.startsWith(path));
+
+    const authRequiredPaths = ['/dashboard', '/projects', '/equipment'];
+    return authRequiredPaths.some((path) => window.location.pathname.startsWith(path));
 }

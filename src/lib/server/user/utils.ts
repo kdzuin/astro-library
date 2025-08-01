@@ -24,12 +24,9 @@ export async function ensureUserExists(userData: CreateUserInput): Promise<User>
     // User doesn't exist, create new user document
     const validatedData = createUserSchema.parse(userData);
     const now = FieldValue.serverTimestamp();
-    
+
     const newUserData = {
         ...validatedData,
-        projects: [],
-        collaboratingProjects: [],
-        favoriteProjects: [],
         createdAt: now,
         updatedAt: now,
     };
@@ -71,25 +68,5 @@ export async function getUserById(userId: string): Promise<User | null> {
     } catch (error) {
         console.error('Error fetching user:', error);
         return null;
-    }
-}
-
-/**
- * Updates a user's project references when they create/delete projects
- */
-export async function updateUserProjects(userId: string, projectId: string, action: 'add' | 'remove'): Promise<void> {
-    const db = await getDb();
-    const userRef = db.collection('users').doc(userId);
-
-    if (action === 'add') {
-        await userRef.update({
-            projects: FieldValue.arrayUnion(projectId),
-            updatedAt: FieldValue.serverTimestamp(),
-        });
-    } else {
-        await userRef.update({
-            projects: FieldValue.arrayRemove(projectId),
-            updatedAt: FieldValue.serverTimestamp(),
-        });
     }
 }

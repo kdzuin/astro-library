@@ -12,22 +12,22 @@ function isSessionLikelyValid(sessionCookie: string): boolean {
         if (!sessionCookie || sessionCookie.length < 10) {
             return false;
         }
-        
+
         // Check if it looks like a JWT (has dots)
         const parts = sessionCookie.split('.');
         if (parts.length !== 3) {
             return false;
         }
-        
+
         // Try to decode the payload to check expiration
         const payload = JSON.parse(atob(parts[1]));
         const now = Math.floor(Date.now() / 1000);
-        
+
         // Check if token is expired
         if (payload.exp && payload.exp < now) {
             return false;
         }
-        
+
         return true;
     } catch {
         // If we can't parse it, assume it's invalid
@@ -43,8 +43,8 @@ export function middleware(request: NextRequest) {
     const hasValidSession = sessionCookie?.value && isSessionLikelyValid(sessionCookie.value);
 
     // Protected routes that require authentication
-    const protectedRoutes = ['/dashboard', '/projects', '/equipment', '/catalogues'];
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+    const protectedRoutes = ['/dashboard', '/projects', '/equipment'];
+    const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
     // Redirect users with invalid/expired sessions away from protected routes
     if (!hasValidSession && isProtectedRoute) {

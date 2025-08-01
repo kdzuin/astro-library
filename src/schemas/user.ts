@@ -5,9 +5,6 @@ export const userSchema = z.object({
     email: z.string().email(),
     displayName: z.string().optional(),
     photoURL: z.url().optional(),
-    projects: z.array(z.string()).default([]), // Array of project IDs user owns
-    collaboratingProjects: z.array(z.string()).default([]), // Projects user collaborates on
-    favoriteProjects: z.array(z.string()).default([]), // Future: favorite projects
     createdAt: z.date(),
     updatedAt: z.date(),
 });
@@ -25,9 +22,6 @@ export const updateUserSchema = z
     .object({
         displayName: z.string().optional(),
         photoURL: z.url().optional(),
-        projects: z.array(z.string()).optional(),
-        collaboratingProjects: z.array(z.string()).optional(),
-        favoriteProjects: z.array(z.string()).optional(),
     })
     .partial();
 

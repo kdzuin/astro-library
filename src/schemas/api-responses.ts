@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { projectSchema } from './project';
 import { sessionDataSchema } from './session';
 import { equipmentSchema } from './equipment';
-import { catalogueSchema } from './catalogue';
 import { collectionSchema } from './collection';
 
 /**
@@ -16,9 +15,6 @@ import { collectionSchema } from './collection';
 
 // Project with populated relationships
 export const projectWithRelationsSchema = projectSchema.extend({
-    // Populated catalogue (if assigned)
-    catalogue: catalogueSchema.optional(),
-
     // Populated collections (if assigned to any)
     collections: z.array(collectionSchema).default([]),
 

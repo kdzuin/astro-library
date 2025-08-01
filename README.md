@@ -4,22 +4,21 @@ A comprehensive library management system for astronomers to organize and showca
 
 ## Features
 
-- Project management for astrophotography work
-- Source tracking (lights, calibrations, etc.)
-- Processing descriptions and results
-- Dashboard/catalogue with search by image type and palette
-- Sharing capabilities for galleries, projects, and individual images
+-   Project management for astrophotography work
+-   Source tracking (lights, calibrations, etc.)
+-   Processing descriptions and results
+-   Sharing capabilities for galleries, projects, and individual images
 
 ## Tech Stack
 
-- Next.js
-- TypeScript
-- TailwindCSS
-- shadcn/ui
-- CVA (Class Variance Authority)
-- Firebase (Authentication, Firestore, Storage)
-- TanStack Query
-- Zustand
+-   Next.js
+-   TypeScript
+-   TailwindCSS
+-   shadcn/ui
+-   CVA (Class Variance Authority)
+-   Firebase (Authentication, Firestore, Storage)
+-   TanStack Query
+-   Zustand
 
 ## Getting Started
 

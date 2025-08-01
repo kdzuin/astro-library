@@ -13,7 +13,7 @@ import {
     SidebarMenuItem,
     SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Database, FolderKanban, LayoutDashboard, LucideSparkle } from 'lucide-react';
+import { FolderKanban, LayoutDashboard, LucideSparkle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { NavUser } from '@/components/layout/nav-user';
 import { AuthService } from '@/lib/client/auth/auth-service';
@@ -31,11 +31,6 @@ const items = [
         title: 'Projects',
         url: '/projects',
         icon: FolderKanban,
-    },
-    {
-        title: 'Catalogues',
-        url: '/catalogues',
-        icon: Database,
     },
 ];
 
@@ -58,8 +53,6 @@ export function AppSidebar({ user }: AppSidebarProps) {
 
     return (
         <>
-            <SidebarTrigger className="absolute end-4 top-4" />
-
             <Sidebar collapsible="icon">
                 <SidebarHeader>
                     <SidebarMenu>

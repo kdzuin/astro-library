@@ -15,7 +15,6 @@ export const projectSchema = z.object({
     description: z.string().optional(),
 
     // Catalogue assignment (optional)
-    catalogueId: z.string().optional(), // Reference to NGC, Messier, Caldwell, or user catalogue
     catalogueDesignation: z.string().optional(), // e.g. "NGC 7000", "M31", "C20"
 
     // Collection assignment (optional)
