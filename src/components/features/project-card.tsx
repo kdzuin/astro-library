@@ -8,10 +8,28 @@ interface ProjectCardProps {
     project: Project;
 }
 
+function mapStatusToLabel(status: Project['status']): string {
+    switch (status) {
+        case 'active':
+            return 'Active';
+        case 'planning':
+            return 'Planning';
+        case 'processing':
+            return 'Processing';
+        case 'completed':
+            return 'Completed';
+    }
+}
+
 export function ProjectCard({ project }: ProjectCardProps) {
     const sessionCount = Object.keys(project.sessions || {}).length;
     const totalExposureTime = Object.values(project.sessions || {}).reduce(
-        (total, session) => total + (session.totalExposureTime || 0),
+        (total, session) =>
+            total +
+            (session.filters.reduce(
+                (total, filter) => total + filter.exposureTime * filter.frameCount,
+                0
+            ) || 0),
         0
     );
 
@@ -47,7 +65,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 <div className="space-y-3">
                     {/* Project metadata */}
                     <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary">{project.status}</Badge>
+                        <Badge variant="secondary" data-testid="project-status">
+                            {mapStatusToLabel(project.status)}
+                        </Badge>
                         {project.catalogueDesignation && (
                             <Badge variant="outline">{project.catalogueDesignation}</Badge>
                         )}

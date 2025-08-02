@@ -1,21 +1,13 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const dirname =
   typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
-// Vitest configuration for unit tests
-// For Storybook tests, use: npm run test:storybook
 export default defineConfig({
   plugins: [react()],
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
-    exclude: ['src/**/*.stories.{js,ts,jsx,tsx}'],
-  },
   resolve: {
     alias: {
       '@': path.resolve(dirname, './src'),

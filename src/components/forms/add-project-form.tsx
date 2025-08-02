@@ -98,9 +98,16 @@ export default function AddProjectForm() {
 
     return (
         <Form {...form}>
-            <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+            <form
+                className="space-y-6"
+                onSubmit={form.handleSubmit(onSubmit)}
+                data-testid="add-project-form"
+            >
                 {error && (
-                    <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
+                    <div
+                        className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm"
+                        data-testid="global-error-message"
+                    >
                         {error}
                     </div>
                 )}
@@ -115,10 +122,11 @@ export default function AddProjectForm() {
                                 <Input
                                     placeholder="e.g. NGC7000 — North America Nebula"
                                     disabled={isLoading}
+                                    data-testid="project-name-input"
                                     {...field}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage data-testid="error-message" />
                         </FormItem>
                     )}
                 />
@@ -133,10 +141,11 @@ export default function AddProjectForm() {
                                 <Textarea
                                     placeholder="Describe your project, target details, goals, etc."
                                     disabled={isLoading}
+                                    data-testid="project-description-input"
                                     {...field}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage data-testid="error-message" />
                         </FormItem>
                     )}
                 />
@@ -151,10 +160,11 @@ export default function AddProjectForm() {
                                 <Input
                                     placeholder="e.g. nebula, emission, summer, widefield (comma-separated)"
                                     disabled={isLoading}
+                                    data-testid="project-tags-input"
                                     {...field}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage data-testid="error-message" />
                         </FormItem>
                     )}
                 />
@@ -170,27 +180,39 @@ export default function AddProjectForm() {
                                     onValueChange={field.onChange}
                                     value={field.value}
                                     disabled={isLoading}
+                                    data-testid="project-visibility-select"
                                 >
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger
+                                        className="w-full"
+                                        data-testid="project-visibility-trigger"
+                                    >
                                         <SelectValue placeholder="Select visibility" />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="private">
+                                    <SelectContent data-testid="project-visibility-content">
+                                        <SelectItem
+                                            value="private"
+                                            data-testid="visibility-private"
+                                        >
                                             Private - Only you can see this project
                                         </SelectItem>
-                                        <SelectItem value="public">
+                                        <SelectItem value="public" data-testid="visibility-public">
                                             Public - Anyone can view this project
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage data-testid="error-message" />
                         </FormItem>
                     )}
                 />
 
                 <div className="flex gap-4">
-                    <Button type="submit" disabled={isLoading} className="flex-1">
+                    <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="flex-1"
+                        data-testid="submit-button"
+                    >
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {isLoading ? 'Creating...' : 'Create Project'}
                     </Button>
@@ -199,6 +221,7 @@ export default function AddProjectForm() {
                         variant="outline"
                         disabled={isLoading}
                         onClick={() => router.push('/projects')}
+                        data-testid="cancel-button"
                     >
                         Cancel
                     </Button>

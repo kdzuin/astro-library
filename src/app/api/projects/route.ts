@@ -1,35 +1,12 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/server/auth/with-auth';
-import { createProjectSchema, type Project } from '@/schemas/project';
-import { getDb } from '@/lib/server/firebase/firestore';
-import { FieldValue } from 'firebase-admin/firestore';
+import { createProjectSchema } from '@/schemas/project';
+import { getUserProjects, createProject } from '@/lib/server/transport/projects';
 
 // GET /api/projects - Fetch all projects for current user
 export const GET = withAuth(async (request, context, user) => {
     try {
-        const db = await getDb();
-
-        const projectDocs = await db.collection('projects').where('userId', '==', user.id).get();
-        const projects: Project[] = projectDocs.docs
-            .filter((doc) => doc.exists)
-            .map((doc) => {
-                const data = doc.data()!;
-                return {
-                    id: doc.id,
-                    ...data,
-                    createdAt: data.createdAt?.toDate() || new Date(),
-                    updatedAt: data.updatedAt?.toDate() || new Date(),
-                } as Project;
-            })
-            .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-
-        if (projects.length === 0) {
-            return NextResponse.json({
-                success: true,
-                data: [],
-                count: 0,
-            });
-        }
+        const projects = await getUserProjects(user.id);
 
         return NextResponse.json({
             success: true,
@@ -55,34 +32,12 @@ export const POST = withAuth(async (request, context, user) => {
             userId: user.id, // Ensure project belongs to current user
         });
 
-        const db = await getDb();
-
-        const batch = db.batch();
-
-        const projectRef = db.collection('projects').doc();
-        batch.set(projectRef, {
-            ...validatedData,
-            userId: user.id,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
-        });
-
-        await batch.commit();
-
-        const createdDoc = await projectRef.get();
-        const createdData = createdDoc.data()!;
-
-        const project: Project = {
-            id: createdDoc.id,
-            ...createdData,
-            createdAt: createdData.createdAt?.toDate() || new Date(),
-            updatedAt: createdData.updatedAt?.toDate() || new Date(),
-        } as Project;
+        const projectId = await createProject(validatedData);
 
         return NextResponse.json(
             {
                 success: true,
-                data: project,
+                data: { id: projectId },
                 message: 'Project created successfully',
             },
             { status: 201 }

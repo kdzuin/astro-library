@@ -19,10 +19,6 @@ export const sessionDataSchema = z.object({
     date: sessionDateSchema, // YYYY-MM-DD
     location: z.string().optional(), // Imaging location
 
-    // Quantitative acquisition data
-    totalExposureTime: z.number().optional(), // Total exposure time in minutes
-    numberOfFrames: z.number().optional(), // Total number of frames captured
-
     // Filter/wavelength data
     filters: z
         .array(
@@ -30,7 +26,6 @@ export const sessionDataSchema = z.object({
                 name: z.string(), // e.g. "Ha", "OIII", "SII", "L", "R", "G", "B"
                 exposureTime: z.number(), // Individual exposure time in seconds
                 frameCount: z.number(), // Number of frames for this filter
-                totalTime: z.number(), // Total time for this filter in minutes
             })
         )
         .default([]),
