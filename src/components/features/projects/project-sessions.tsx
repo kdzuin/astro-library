@@ -1,14 +1,15 @@
 import { SessionData } from '@/schemas/session';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 export interface ProjectSessionsProps {
     sessions: SessionData[];
+    projectId: string;
 }
 
-export function ProjectSessions({ sessions }: ProjectSessionsProps) {
+export function ProjectSessions({ sessions, projectId }: ProjectSessionsProps) {
     return (
         <table className="decorated-table w-full">
-            <caption>Project Sessions</caption>
             <colgroup>
                 <col />
                 <col />
@@ -26,7 +27,14 @@ export function ProjectSessions({ sessions }: ProjectSessionsProps) {
             <tbody>
                 {sessions.map((session, index) => (
                     <tr key={index} data-testid="session-row">
-                        <th>{format(session.date, 'PPP')}</th>
+                        <th>
+                            <Link
+                                href={`/projects/${projectId}/sessions/${session.id}`}
+                                className="underline"
+                            >
+                                {format(session.date, 'PPP')}
+                            </Link>
+                        </th>
                         <td>0</td>
                         <td>{session.notes}</td>
                         <td></td>

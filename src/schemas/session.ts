@@ -15,6 +15,7 @@ export type SessionDate = z.infer<typeof sessionDateSchema>;
 
 // Session data that gets stored within a project for a specific date
 export const sessionDataSchema = z.object({
+    id: z.string(), // Firestore document ID
     date: sessionDateSchema, // YYYY-MM-DD
     location: z.string().optional(), // Imaging location
 

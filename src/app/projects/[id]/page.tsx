@@ -1,8 +1,18 @@
 import { ProjectSessions } from '@/components/features/projects/project-sessions';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { getProjectById } from '@/lib/server/transport/projects';
 import { getSessionByProjectId } from '@/lib/server/transport/sessions';
+import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -17,48 +27,43 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
     return (
         <main className="space-y-6">
-            <PageHeader
-                hasBackButton
-                title={project.name}
-                actions={
-                    <>
-                        <Button asChild>
-                            <Link href={`/projects/${project.id}/add-session`}>Add Session</Link>
-                        </Button>
-                    </>
-                }
-            />
+            <PageHeader hasBackButton title={project.name} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                 <section>
-                    <h2>Final images:</h2>
-                    <p>
-                        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Iusto consequuntur
-                        eaque officia, optio expedita ullam ad aliquam neque totam, eveniet, animi
-                        cum soluta minima voluptate reprehenderit nihil ea dignissimos id!
-                    </p>
-                </section>
-
-                <section>
-                    <ProjectSessions sessions={sessions} />
-                </section>
-
-                <section>
-                    <h2>Processing:</h2>
-
-                    <h3>Processing Notes:</h3>
-                    <p>
-                        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Iusto consequuntur
-                        eaque officia, optio expedita ullam ad aliquam neque totam, eveniet, animi
-                        cum soluta minima voluptate reprehenderit nihil ea dignissimos id!
-                    </p>
-
-                    <h3>Processing Images:</h3>
-                    <p>
-                        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Iusto consequuntur
-                        eaque officia, optio expedita ullam ad aliquam neque totam, eveniet, animi
-                        cum soluta minima voluptate reprehenderit nihil ea dignissimos id!
-                    </p>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Sessions</CardTitle>
+                            <CardDescription>
+                                During this project, you logged {sessions.length} sessions with the
+                                total exposure time of{' '}
+                                {(
+                                    sessions.reduce(
+                                        (acc, session) =>
+                                            acc +
+                                            session.filters.reduce(
+                                                (acc, filter) => acc + filter.exposureTime,
+                                                0
+                                            ),
+                                        0
+                                    ) / 3600
+                                ).toFixed(2)}
+                                {' '}hours. The filter balance in the project is 2:1:1. The most
+                                data is collected in H<sub>α</sub> filter.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ProjectSessions sessions={sessions} projectId={project.id} />
+                        </CardContent>
+                        <CardFooter className="border-t">
+                            <Button asChild size="sm" variant="positive">
+                                <Link href={`/projects/${project.id}/add-session`}>
+                                    <Plus />
+                                    Add Session
+                                </Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
                 </section>
             </div>
         </main>

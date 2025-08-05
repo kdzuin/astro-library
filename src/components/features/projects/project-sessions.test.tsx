@@ -9,16 +9,26 @@ describe('Project Sessions Render', () => {
     });
 
     it('renders project sessions table with rows', () => {
-        render(<ProjectSessions sessions={Primary.args?.sessions || []} />);
+        render(
+            <ProjectSessions
+                sessions={Primary.args?.sessions ?? []}
+                projectId={Primary.args?.projectId ?? ''}
+            />
+        );
 
         expect(screen.getByRole('table')).toBeInTheDocument();
         expect(screen.getAllByTestId('session-row')).toHaveLength(
-            Object.keys(Primary.args?.sessions || {}).length
+            Object.keys(Primary.args?.sessions ?? []).length
         );
     });
 
     it('renders project sessions table with no rows', () => {
-        render(<ProjectSessions sessions={Empty.args?.sessions || []} />);
+        render(
+            <ProjectSessions
+                sessions={Empty.args?.sessions ?? []}
+                projectId={Empty.args?.projectId ?? ''}
+            />
+        );
 
         expect(screen.getByRole('table')).toBeInTheDocument();
         expect(screen.queryAllByTestId('session-row')).toHaveLength(0);

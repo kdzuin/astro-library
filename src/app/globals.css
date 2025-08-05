@@ -26,6 +26,7 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
+    --color-positive: var(--positive);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
@@ -61,6 +62,7 @@
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
+    --positive: oklch(0.577 0.245 150);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
@@ -145,27 +147,23 @@
     }
 
     table.decorated-table {
-        @apply my-4;
-        @apply text-[0.85em];
+        @apply text-[0.75em];
 
         caption {
             @apply text-base font-semibold text-start;
             @apply m-0 p-0 mb-2;
         }
 
-        thead {
-            @apply bg-muted;
+        thead tr {
+            /* @apply bg-primary/8; */
             @apply border-b;
         }
 
         tbody tr {
             @apply border-b;
         }
-        tbody tr:nth-child(even) {
-            @apply bg-muted/50;
-        }
-        tbody tr:hover {
-            @apply !bg-muted/100;
+        tbody tr:nth-child(odd) {
+            @apply bg-primary/3;
         }
 
         td,
@@ -175,6 +173,11 @@
         }
         th {
             @apply font-semibold;
+        }
+
+        tbody th,
+        tbody td {
+            @apply not-last:border-e;
         }
     }
 }

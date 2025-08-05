@@ -17,16 +17,27 @@ export async function getSessionByProjectId(projectId: string): Promise<SessionD
             .orderBy('date', 'desc');
         const sessionsSnapshot = await sessionsRef.get();
 
-        const sessions = sessionsSnapshot.docs
-            .filter((doc) => doc.exists)
-            .map((doc) => doc.data() as SessionData);
+        const sessions: SessionData[] = [];
 
-        const result = sessionDataSchema.array().safeParse(sessions);
-        if (!result.success) {
-            console.error('Invalid session data:', result.error.issues);
-            return [];
+        for (const doc of sessionsSnapshot.docs) {
+            if (!doc.exists) continue;
+
+            const data = doc.data()!;
+            const sessionData = {
+                id: doc.id,
+                ...data,
+            };
+
+            const result = sessionDataSchema.safeParse(sessionData);
+            if (!result.success) {
+                console.error('Invalid session data for doc', doc.id, ':', result.error);
+                continue;
+            }
+
+            sessions.push(result.data);
         }
-        return result.data;
+
+        return sessions;
     } catch (error) {
         console.error('Error fetching project sessions:', error);
         return [];
