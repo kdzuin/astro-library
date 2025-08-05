@@ -8,7 +8,7 @@ vi.mock('./utils', () => ({
     requireAuth: vi.fn(),
 }));
 
-describe('Auth Hooks (Fixed)', () => {
+describe('Auth Hooks', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });

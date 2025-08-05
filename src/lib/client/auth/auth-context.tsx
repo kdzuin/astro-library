@@ -30,9 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     email: firebaseUser.email!,
                     displayName: firebaseUser.displayName || undefined,
                     photoURL: firebaseUser.photoURL || undefined,
-                    projects: [],
-                    collaboratingProjects: [],
-                    favoriteProjects: [],
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 };

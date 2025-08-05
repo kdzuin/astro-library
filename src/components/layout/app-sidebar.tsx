@@ -11,7 +11,6 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { FolderKanban, LayoutDashboard, LucideSparkle } from 'lucide-react';
 import { usePathname } from 'next/navigation';

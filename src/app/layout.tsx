@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/layout/app-sidebar';
 import { getCurrentUser } from '@/lib/server/auth/utils';
 
 import './globals.css';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -36,23 +37,25 @@ export default async function RootLayout({
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 {user ? (
                     // Authenticated layout with sidebar
-                    <SidebarProvider defaultOpen={true}>
-                        <div className="flex min-h-screen w-full">
-                            <AppSidebar user={user} />
-                            <main className="flex-1 w-full px-6 py-4 pe-15">
-                                {children}
-                                {modal}
-                            </main>
-                        </div>
-                        <Toaster />
-                    </SidebarProvider>
+                    <TooltipProvider>
+                        <SidebarProvider defaultOpen={true}>
+                            <div className="flex min-h-screen w-full">
+                                <AppSidebar user={user} />
+                                <main className="flex-1 w-full px-6 py-4 pe-15">
+                                    {children}
+                                    {modal}
+                                </main>
+                            </div>
+                            <Toaster />
+                        </SidebarProvider>
+                    </TooltipProvider>
                 ) : (
                     // Unauthenticated layout (simple)
-                    <>
+                    <TooltipProvider>
                         {children}
                         {modal}
                         <Toaster />
-                    </>
+                    </TooltipProvider>
                 )}
             </body>
         </html>

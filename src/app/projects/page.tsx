@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Plus, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { Project } from '@/schemas/project';
-import { ProjectCard } from '@/components/features/project-card';
+import { ProjectCard } from '@/components/features/projects/project-card';
 import { PageHeader } from '@/components/layout/page-header';
 import { requireAuth } from '@/lib/server/auth/utils';
 import { getUserProjects } from '@/lib/server/transport/projects';
@@ -77,9 +77,9 @@ export default async function ProjectsPage() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid lg:grid-cols-2 gap-6">
                     {projects.map((project) => (
-                        <ProjectCard key={project.id} project={project} />
+                        <ProjectCard key={project.id} {...project} />
                     ))}
                 </div>
             )}

@@ -1,8 +1,11 @@
 // Global test setup for React Testing Library + Vitest
 // This file is automatically loaded before each test file
 
+import React from 'react';
 import { expect, vi } from 'vitest';
 import * as matchers from '@testing-library/jest-dom/matchers';
+import { render, type RenderOptions } from '@testing-library/react';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 // Extend Vitest's expect with jest-dom matchers
 expect.extend(matchers);
@@ -39,5 +42,19 @@ vi.mock('next/link', () => {
     };
 });
 
-// Global test utilities can be added here
-// For example, custom render functions, common mocks, etc.
+// Custom render utility that wraps components with TooltipProvider
+
+// Custom render function that wraps components with TooltipProvider
+function customRender(ui: React.ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
+    const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+        return <TooltipProvider>{children}</TooltipProvider>;
+    };
+
+    return render(ui, { wrapper: AllTheProviders, ...options });
+}
+
+// Re-export everything from testing-library
+export * from '@testing-library/react';
+
+// Override render method
+export { customRender as render };

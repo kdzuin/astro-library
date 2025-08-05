@@ -1,10 +1,13 @@
 import type { Preview } from '@storybook/nextjs-vite';
+import { sb } from 'storybook/test';
 
 // Import global CSS which includes Tailwind
 import '../src/app/globals.css';
 
 // Import our theme decorator
 import { withTheme } from './preview-decorator';
+
+sb.mock(import('../src/components/features/auth/useGoogleSignIn'), { spy: true });
 
 const preview: Preview = {
     decorators: [withTheme],
@@ -21,6 +24,9 @@ const preview: Preview = {
             // 'error' - fail CI on a11y violations
             // 'off' - skip a11y checks entirely
             test: 'todo',
+        },
+        nextjs: {
+            appDirectory: true,
         },
     },
 };

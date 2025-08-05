@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from 'next/font/google';
+import { TooltipProvider } from '../src/components/ui/tooltip';
 
 // Initialize the fonts the same way as in the main app
 const geistSans = Geist({
@@ -15,7 +16,9 @@ const geistMono = Geist_Mono({
 export const withTheme = (Story) => {
     return (
         <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-            <Story />
+            <TooltipProvider>
+                <Story />
+            </TooltipProvider>
         </div>
     );
 };

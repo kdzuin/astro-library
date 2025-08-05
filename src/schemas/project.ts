@@ -44,17 +44,3 @@ export const projectSchema = z.object({
 
 // For cases where you need the exact output type from the schema
 export type Project = z.infer<typeof projectSchema>;
-
-// Schema for creating a new project (excludes auto-generated fields)
-export const createProjectSchema = projectSchema.omit({
-    id: true,
-    createdAt: true,
-    updatedAt: true,
-});
-
-export type CreateProjectInput = z.infer<typeof createProjectSchema>;
-
-// Schema for updating a project (all fields optional except id)
-export const updateProjectSchema = projectSchema.partial().required({ id: true });
-
-export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
