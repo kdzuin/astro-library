@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/server/auth/with-auth';
 import { getProjectById } from '@/lib/server/transport/projects';
+import { addSession } from '@/lib/server/transport/sessions';
 import { sessionDataSchema } from '@/schemas/session';
-import { revalidatePath } from 'next/cache';
 
 export const POST = withAuth(async (request, context, user) => {
     try {
@@ -20,6 +20,7 @@ export const POST = withAuth(async (request, context, user) => {
 
         // check if the projectId belongs to the current user
         const project = await getProjectById(projectId);
+
         if (!project) {
             return NextResponse.json(
                 { success: false, error: 'Project not found' },
@@ -38,11 +39,7 @@ export const POST = withAuth(async (request, context, user) => {
             ...body,
         });
 
-        // const sessionId = await createSession(validatedData);
-        console.log(validatedData);
-        const sessionId = 'test';
-
-        revalidatePath(`/projects/${projectId}`);
+        const sessionId = await addSession(projectId, validatedData);
 
         return NextResponse.json(
             {

@@ -27,18 +27,9 @@ export function ProjectCard({
     status,
     catalogueDesignation,
     tags,
-    sessions,
+    totalExposureTime,
 }: ProjectCardProps) {
-    const totalExposureTimeInSeconds = Object.values(sessions || {}).reduce(
-        (total, session) =>
-            total +
-            (session.filters.reduce(
-                (total, filter) => total + filter.exposureTime * filter.frameCount,
-                0
-            ) || 0),
-        0
-    );
-    const totalExposureTimeInMinutes = Math.ceil(totalExposureTimeInSeconds / 60);
+    const totalExposureTimeInMinutes = Math.ceil(totalExposureTime / 60);
 
     return (
         <Card>
@@ -58,25 +49,32 @@ export function ProjectCard({
                     <Badge variant="secondary" data-testid="project-status">
                         {mapStatusToLabel(status)}
                     </Badge>
-                    {catalogueDesignation && (
+
+                    {catalogueDesignation ? (
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Badge variant="outline">{catalogueDesignation}</Badge>
+                                <Badge variant="outline">
+                                    <span className="sr-only">Catalogue Designation:</span>
+                                    {catalogueDesignation}
+                                </Badge>
                             </TooltipTrigger>
                             <TooltipContent>Catalogue Designation</TooltipContent>
                         </Tooltip>
-                    )}
+                    ) : null}
+
                     {tags.slice(0, 2).map((tag) => (
                         <Badge key={tag} variant="outline" className="text-xs">
                             {tag}
                         </Badge>
                     ))}
-                    {tags.length > 2 && (
+
+                    {tags.length > 2 ? (
                         <Badge variant="outline" className="text-xs">
                             +{tags.length - 2} more
                         </Badge>
-                    )}
-                    {totalExposureTimeInMinutes > 0 && (
+                    ) : null}
+
+                    {totalExposureTimeInMinutes ? (
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Badge
@@ -84,12 +82,13 @@ export function ProjectCard({
                                     data-testid="total-exposure-time"
                                     title="Total exposure time"
                                 >
+                                    <span className="sr-only">Total exposure time:</span>
                                     {Math.round(totalExposureTimeInMinutes)} min
                                 </Badge>
                             </TooltipTrigger>
                             <TooltipContent>Total exposure time</TooltipContent>
                         </Tooltip>
-                    )}
+                    ) : null}
                 </div>
             </CardContent>
         </Card>

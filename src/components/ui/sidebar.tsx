@@ -18,7 +18,7 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -250,9 +250,9 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
         <Button
             data-sidebar="trigger"
             data-slot="sidebar-trigger"
-            variant="ghost"
+            variant="secondary"
             size="icon"
-            className={cn('size-7', className)}
+            className={cn(className)}
             onClick={(event) => {
                 onClick?.(event);
                 toggleSidebar();

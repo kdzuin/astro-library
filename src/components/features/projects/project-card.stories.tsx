@@ -27,43 +27,10 @@ const mockProject: Project = {
     tags: [],
     processingImageUrls: [],
     finalImageUrls: [],
-    sessions: {
-        '2024-07-15': {
-            date: '2024-07-15',
-            location: 'Dark Sky Site',
-            equipmentIds: [],
-            tags: [],
-            filters: [
-                {
-                    name: 'Ha',
-                    exposureTime: 300,
-                    frameCount: 12,
-                },
-                {
-                    name: 'OIII',
-                    exposureTime: 300,
-                    frameCount: 12,
-                },
-            ],
-        },
-    },
     createdAt: new Date('2024-07-01T10:00:00Z'),
     updatedAt: new Date('2024-07-16T02:00:00Z'),
+    totalExposureTime: 1200,
 };
-
-export const _mockProjectTotalExposureInSeconds = Object.values(mockProject.sessions).reduce(
-    (total, session) =>
-        total +
-        session.filters.reduce(
-            (total, filter) => total + filter.exposureTime * filter.frameCount,
-            0
-        ),
-    0
-);
-
-export const _mockProjectTotalExposureInMinutes = Math.ceil(
-    _mockProjectTotalExposureInSeconds / 60
-);
 
 export const Primary: Story = {
     args: {

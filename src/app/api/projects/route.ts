@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/server/auth/with-auth';
 import { createProjectSchema } from '@/schemas/project';
-import { getUserProjects, createProject } from '@/lib/server/transport/projects';
-import { revalidatePath } from 'next/cache';
+import { getProjectsByUserId, createProject } from '@/lib/server/transport/projects';
 
 // GET /api/projects - Fetch all projects for current user
 export const GET = withAuth(async (request, context, user) => {
     try {
-        const projects = await getUserProjects(user.id);
+        const projects = await getProjectsByUserId(user.id);
 
         return NextResponse.json({
             success: true,
@@ -34,8 +33,6 @@ export const POST = withAuth(async (request, context, user) => {
         });
 
         const projectId = await createProject(validatedData);
-
-        revalidatePath(`/projects`);
 
         return NextResponse.json(
             {

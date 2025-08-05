@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { sessionDataSchema, SessionData } from './session';
 
 /**
  * Zod schema for astronomical imaging Project
@@ -31,12 +30,11 @@ export const projectSchema = z.object({
     // Final gallery
     finalImageUrls: z.array(z.string()).default([]), // Final processed images
 
-    // Session data - map of YYYY-MM-DD dates to session data
-    sessions: z.record(z.string(), sessionDataSchema).default({}), // Key: YYYY-MM-DD, Value: SessionData
-
     // Metadata
     visibility: z.enum(['public', 'private']).default('private'),
     status: z.enum(['planning', 'active', 'processing', 'completed']).default('planning'),
+
+    totalExposureTime: z.number().default(0),
 
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -52,8 +50,3 @@ export const createProjectSchema = projectSchema.omit({
 // For cases where you need the exact output type from the schema
 export type Project = z.infer<typeof projectSchema>;
 export type CreateProject = z.infer<typeof createProjectSchema>;
-
-// Derived types for working with project sessions
-export type ProjectSessions = Project['sessions']; // Record<string, SessionData>
-export type ProjectSessionsArray = SessionData[]; // Array version for components that prefer arrays
-export type ProjectSessionEntry = [string, SessionData]; // [date, sessionData] tuple

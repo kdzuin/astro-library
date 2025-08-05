@@ -6,8 +6,9 @@ import { Project } from '@/schemas/project';
 import { ProjectCard } from '@/components/features/projects/project-card';
 import { PageHeader } from '@/components/layout/page-header';
 import { requireAuth } from '@/lib/server/auth/utils';
-import { getUserProjects } from '@/lib/server/transport/projects';
+import { getProjectsByUserId } from '@/lib/server/transport/projects';
 import { revalidatePath } from 'next/cache';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Server Action for refreshing projects data
 async function refreshProjects() {
@@ -16,12 +17,12 @@ async function refreshProjects() {
 }
 
 // Server-side data fetching with caching
-async function getProjects(): Promise<Project[]> {
+async function fetchProjects(): Promise<Project[]> {
     try {
         const user = await requireAuth();
 
         // Direct database access is more efficient for server components
-        const projects = await getUserProjects(user.id);
+        const projects = await getProjectsByUserId(user.id);
         return projects;
     } catch (error) {
         console.error('Failed to fetch projects:', error);
@@ -32,7 +33,7 @@ async function getProjects(): Promise<Project[]> {
 
 // Server Component - runs on the server
 export default async function ProjectsPage() {
-    const projects = await getProjects();
+    const projects = await fetchProjects();
 
     return (
         <main className="space-y-6">
@@ -41,17 +42,25 @@ export default async function ProjectsPage() {
                 actions={
                     <>
                         <form action={refreshProjects}>
-                            <Button type="submit" variant="outline">
-                                <RefreshCw />
-                                Refresh
-                            </Button>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button type="submit" variant="outline" size="icon">
+                                        <RefreshCw />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Refresh Projects</TooltipContent>
+                            </Tooltip>
                         </form>
-                        <Button asChild>
-                            <Link href="/projects/add">
-                                <Plus />
-                                New Project
-                            </Link>
-                        </Button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" size="icon" asChild>
+                                    <Link href="/projects/add">
+                                        <Plus />
+                                    </Link>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Add Project</TooltipContent>
+                        </Tooltip>
                     </>
                 }
             />

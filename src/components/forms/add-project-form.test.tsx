@@ -12,6 +12,15 @@ vi.mock('next/navigation', () => ({
 // Mock fetch
 global.fetch = vi.fn();
 
+// Mock window.location.replace
+const mockLocationReplace = vi.fn();
+Object.defineProperty(window, 'location', {
+    value: {
+        replace: mockLocationReplace,
+    },
+    writable: true,
+});
+
 describe('AddProjectForm', () => {
     const mockPush = vi.fn();
 
@@ -70,7 +79,7 @@ describe('AddProjectForm', () => {
 
             // Wait for navigation to occur
             await waitFor(() => {
-                expect(mockPush).toHaveBeenCalledWith('/projects');
+                expect(mockLocationReplace).toHaveBeenCalledWith('/projects');
             });
         });
 
@@ -81,7 +90,7 @@ describe('AddProjectForm', () => {
             const submitButton = screen.getByTestId('submit-button');
 
             await user.click(submitButton);
-            
+
             await waitFor(() => {
                 const errorMessages = screen.getAllByTestId('error-message');
                 expect(errorMessages.length).toBeGreaterThanOrEqual(1);

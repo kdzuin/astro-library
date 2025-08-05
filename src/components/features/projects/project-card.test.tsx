@@ -2,11 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { cleanup, render, screen } from '@/test/setup';
 import { ProjectCard } from '@/components/features/projects/project-card';
 import type { Project } from '@/schemas/project';
-import {
-    _mockProjectTotalExposureInMinutes,
-    _mockProjectTotalExposureInSeconds,
-    Primary,
-} from './project-card.stories';
+import { Primary } from './project-card.stories';
 
 // Sample test data
 const mockProject: Project = Primary.args as Project;
@@ -36,7 +32,7 @@ describe('ProjectCard Session Stats', () => {
         const totalTimeBadge = screen.getByTestId('total-exposure-time');
 
         expect(totalTimeBadge).toBeInTheDocument();
-        expect(totalTimeBadge).not.toHaveTextContent(_mockProjectTotalExposureInSeconds);
-        expect(totalTimeBadge).toHaveTextContent(_mockProjectTotalExposureInMinutes);
+        expect(totalTimeBadge).not.toHaveTextContent(mockProject.totalExposureTime);
+        expect(totalTimeBadge).toHaveTextContent(Math.ceil(mockProject.totalExposureTime / 60));
     });
 });

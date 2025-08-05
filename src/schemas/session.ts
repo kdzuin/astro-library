@@ -7,7 +7,6 @@ import { z } from 'zod';
  * Session data (acquisition info, equipment, conditions) is stored within the project.
  */
 
-// Session is now just a date string in YYYY-MM-DD format
 export const sessionDateSchema = z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format');

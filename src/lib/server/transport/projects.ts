@@ -3,12 +3,11 @@
 import { Project, projectSchema } from '@/schemas/project';
 import { getDb } from '@/lib/server/firebase/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
-import { SessionData, sessionDataSchema } from '@/schemas/session';
 
 /**
  * Get all projects for a specific user, sorted by most recently updated
  */
-export async function getUserProjects(userId: string): Promise<Project[]> {
+export async function getProjectsByUserId(userId: string): Promise<Project[]> {
     try {
         const db = await getDb();
 
@@ -20,10 +19,10 @@ export async function getUserProjects(userId: string): Promise<Project[]> {
             .get();
 
         const projects: Project[] = [];
-        
+
         for (const doc of projectDocs.docs) {
             if (!doc.exists) continue;
-            
+
             const data = doc.data()!;
             const projectData = {
                 id: doc.id,
@@ -31,13 +30,13 @@ export async function getUserProjects(userId: string): Promise<Project[]> {
                 createdAt: data.createdAt?.toDate() || new Date(),
                 updatedAt: data.updatedAt?.toDate() || new Date(),
             };
-            
+
             const result = projectSchema.safeParse(projectData);
             if (!result.success) {
                 console.error('Invalid project data for doc', doc.id, ':', result.error);
                 continue;
             }
-            
+
             projects.push(result.data);
         }
 
@@ -65,13 +64,13 @@ export async function getProjectById(projectId: string): Promise<Project | null>
                 createdAt: data.createdAt?.toDate() || new Date(),
                 updatedAt: data.updatedAt?.toDate() || new Date(),
             };
-            
+
             const result = projectSchema.safeParse(projectData);
             if (!result.success) {
                 console.error('Invalid project data for doc', projectDoc.id, ':', result.error);
                 return null;
             }
-            
+
             return result.data;
         } else {
             return null;
@@ -138,30 +137,5 @@ export async function deleteProject(projectId: string): Promise<void> {
     } catch (error) {
         console.error('Error deleting project:', error);
         throw error;
-    }
-}
-
-/**
- * Get all sessions for a specific project
- */
-export async function getProjectSessions(projectId: string): Promise<SessionData[]> {
-    try {
-        const db = await getDb();
-        const sessionsRef = db.collection('projects').doc(projectId).collection('sessions');
-        const sessionsSnapshot = await sessionsRef.get();
-
-        const sessions: SessionData[] = sessionsSnapshot.docs
-            .filter((doc) => doc.exists)
-            .map((doc) => doc.data() as SessionData);
-
-        const result = sessionDataSchema.array().safeParse(sessions);
-        if (!result.success) {
-            console.error('Invalid session data:', result.error);
-            return [];
-        }
-        return result.data;
-    } catch (error) {
-        console.error('Error fetching project sessions:', error);
-        return [];
     }
 }

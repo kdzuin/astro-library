@@ -1,6 +1,11 @@
-import { ProjectSessions as ProjectSessionsType } from '@/schemas/project';
+import { SessionData } from '@/schemas/session';
+import { format } from 'date-fns';
 
-export function ProjectSessions({ sessions }: { sessions: ProjectSessionsType }) {
+export interface ProjectSessionsProps {
+    sessions: SessionData[];
+}
+
+export function ProjectSessions({ sessions }: ProjectSessionsProps) {
     return (
         <table className="decorated-table w-full">
             <caption>Project Sessions</caption>
@@ -19,15 +24,15 @@ export function ProjectSessions({ sessions }: { sessions: ProjectSessionsType })
                 </tr>
             </thead>
             <tbody>
-                {Object.entries(sessions).map(([date, session]) => (
-                    <tr key={date} data-testid="session-row">
-                        <th>{new Date(date).toLocaleDateString()}</th>
+                {sessions.map((session, index) => (
+                    <tr key={index} data-testid="session-row">
+                        <th>{format(session.date, 'PPP')}</th>
                         <td>0</td>
                         <td>{session.notes}</td>
                         <td></td>
                     </tr>
                 ))}
-                {Object.keys(sessions).length === 0 ? (
+                {sessions.length === 0 ? (
                     <tr data-testid="no-sessions">
                         <td colSpan={4} className="text-center p-2 bg-white">
                             No sessions
