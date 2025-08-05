@@ -10,7 +10,11 @@ import { SessionData, sessionDataSchema } from '@/schemas/session';
 export async function getSessionByProjectId(projectId: string): Promise<SessionData[]> {
     try {
         const db = await getDb();
-        const sessionsRef = db.collection('projects').doc(projectId).collection('sessions');
+        const sessionsRef = db
+            .collection('projects')
+            .doc(projectId)
+            .collection('sessions')
+            .orderBy('date', 'desc');
         const sessionsSnapshot = await sessionsRef.get();
 
         const sessions = sessionsSnapshot.docs
