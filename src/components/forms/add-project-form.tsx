@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/form';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusIcon } from 'lucide-react';
 import { tagsStringToArray } from '@/lib/utils';
 
 const addProjectFormSchema = z.object({
@@ -211,14 +211,23 @@ export default function AddProjectForm() {
                         className="flex-1"
                         data-testid="submit-button"
                     >
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isLoading ? 'Creating...' : 'Create Project'}
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="animate-spin" />
+                                Creating...
+                            </>
+                        ) : (
+                            <>
+                                <PlusIcon />
+                                Create Project
+                            </>
+                        )}
                     </Button>
                     <Button
                         type="button"
                         variant="outline"
                         disabled={isLoading}
-                        onClick={() => router.push('/projects')}
+                        onClick={() => router.back()}
                         data-testid="cancel-button"
                     >
                         Cancel

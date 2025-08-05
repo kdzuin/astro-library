@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, PlusIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -191,14 +191,23 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
                         className="flex-1"
                         data-testid="submit-button"
                     >
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isLoading ? 'Creating...' : 'Create Session'}
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="animate-spin" />
+                                Creating...
+                            </>
+                        ) : (
+                            <>
+                                <PlusIcon />
+                                Create Session
+                            </>
+                        )}
                     </Button>
                     <Button
                         type="button"
                         variant="outline"
                         disabled={isLoading}
-                        onClick={() => router.push(`/projects/${projectId}`)}
+                        onClick={() => router.back()}
                         data-testid="cancel-button"
                     >
                         Cancel

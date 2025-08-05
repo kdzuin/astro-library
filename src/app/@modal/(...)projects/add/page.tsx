@@ -1,4 +1,4 @@
-import AddProjectForm from '@/app/projects/add/page';
+import AddProjectForm from '@/components/forms/add-project-form';
 import { Modal } from '@/components/modals/modal';
 
 export default function AddProjectModal() {

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function AddSessionLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2">
+        <div className="grid">
             <Card>
                 <CardHeader>
                     <CardTitle>Create New Session</CardTitle>
