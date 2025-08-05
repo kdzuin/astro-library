@@ -5,8 +5,9 @@ import { getProjectById } from '@/lib/server/transport/projects';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-export default async function ProjectPage({ params }: { params: { id: string } }) {
-    const project = await getProjectById(params.id);
+export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+    const projectId = (await params).id;
+    const project = await getProjectById(projectId);
 
     if (!project) {
         return notFound();
@@ -30,7 +31,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
 
                 <div className="flex gap-4 my-4">
                     <Button asChild>
-                        <Link href={`/projects/${project.id}/sessions/add`}>Add Session</Link>
+                        <Link href={`/projects/${project.id}/add-session`}>Add Session</Link>
                     </Button>
                 </div>
 

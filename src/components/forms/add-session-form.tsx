@@ -19,9 +19,22 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 const addSessionFormSchema = z.object({
     date: z.date('Please provide the date of the session'),
+    location: z.string().optional(),
+    filters: z
+        .array(z.object({ name: z.string(), exposureTime: z.number(), frameCount: z.number() }))
+        .optional(),
+    equipmentIds: z.array(z.string()).optional(),
+    seeing: z.number().optional(),
+    transparency: z.number().optional(),
+    temperature: z.number().optional(),
+    humidity: z.number().optional(),
+    notes: z.string().optional(),
+    issues: z.string().optional(),
+    tags: z.string().optional(),
 });
 
 export type AddSessionFormSchema = z.infer<typeof addSessionFormSchema>;
@@ -35,6 +48,7 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
         resolver: zodResolver(addSessionFormSchema),
         defaultValues: {
             date: new Date(),
+            tags: '',
         },
     });
 
@@ -42,7 +56,35 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
         setIsLoading(true);
         setError(null);
 
-        console.log(data);
+        try {
+            const sessionData = {
+                date: data.date.toISOString().slice(0, 10),
+                location: data.location,
+                tags: data.tags ? data.tags.split(',').map((tag) => tag.trim()) : [],
+            };
+
+            const response = await fetch(`/api/projects/${projectId}/sessions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(sessionData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to create session');
+            }
+
+            await response.json();
+
+            // Navigate to the parent project
+            router.push(`/projects/${projectId}`);
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An error occurred');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -100,6 +142,44 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
                                         />
                                     </PopoverContent>
                                 </Popover>
+                            </FormControl>
+                            <FormMessage data-testid="error-message" />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Location (Optional)</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="e.g. backyard, observatory"
+                                    disabled={isLoading}
+                                    data-testid="session-location-input"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage data-testid="error-message" />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="tags"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Tags (Optional)</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="e.g. nebula, emission, summer, widefield (comma-separated)"
+                                    disabled={isLoading}
+                                    data-testid="session-tags-input"
+                                    {...field}
+                                />
                             </FormControl>
                             <FormMessage data-testid="error-message" />
                         </FormItem>

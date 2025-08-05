@@ -1,13 +1,13 @@
-import AddSessionForm from '@/components/forms/add-session-form';
+import AddSessionForm from '@/app/projects/[id]/add-session/page';
 import { Modal } from '@/components/modals/modal';
 
-export default function AddSessionModal({ params }: { params: { id: string } }) {
+export default function AddSessionModal({ params }: { params: Promise<{ id: string }> }) {
     return (
         <Modal
             title="Create New Session"
             description="Create a new session to log your acquisition during the project."
         >
-            <AddSessionForm projectId={params.id} />
+            <AddSessionForm params={params} />
         </Modal>
     );
 }

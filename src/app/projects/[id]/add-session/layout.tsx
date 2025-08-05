@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function AddProjectLayout({ children }: { children: React.ReactNode }) {
+export default function AddSessionLayout({ children }: { children: React.ReactNode }) {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2">
             <Card>

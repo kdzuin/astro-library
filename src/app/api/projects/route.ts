@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/server/auth/with-auth';
-import { createProjectSchema } from '@/schemas/project';
+import { projectSchema } from '@/schemas/project';
 import { getUserProjects, createProject } from '@/lib/server/transport/projects';
 
 // GET /api/projects - Fetch all projects for current user
@@ -27,7 +27,7 @@ export const POST = withAuth(async (request, context, user) => {
     try {
         const body = await request.json();
 
-        const validatedData = createProjectSchema.parse({
+        const validatedData = projectSchema.parse({
             ...body,
             userId: user.id, // Ensure project belongs to current user
         });
