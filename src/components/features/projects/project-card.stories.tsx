@@ -3,7 +3,7 @@ import { Project } from '@/schemas/project';
 import { Meta, StoryObj } from '@storybook/nextjs-vite';
 
 const meta = {
-    title: 'Features/Projects/ProjectCard',
+    title: 'Features/Projects/Project Card',
     component: ProjectCard,
     parameters: {
         // layout: 'centered',

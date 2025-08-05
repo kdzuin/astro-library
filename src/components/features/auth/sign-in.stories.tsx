@@ -5,7 +5,7 @@ import { fn, mocked, userEvent, within } from 'storybook/test';
 import { useGoogleSignIn } from '@/components/features/auth/useGoogleSignIn';
 
 export default {
-    title: 'Features/Auth/SignIn',
+    title: 'Features/Auth/Sign In Button',
     component: SignIn,
 } as Meta<typeof SignIn>;
 

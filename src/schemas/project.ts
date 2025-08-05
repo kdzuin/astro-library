@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { sessionDataSchema } from './session';
+import { sessionDataSchema, SessionData } from './session';
 
 /**
  * Zod schema for astronomical imaging Project
@@ -44,3 +44,8 @@ export const projectSchema = z.object({
 
 // For cases where you need the exact output type from the schema
 export type Project = z.infer<typeof projectSchema>;
+
+// Derived types for working with project sessions
+export type ProjectSessions = Project['sessions']; // Record<string, SessionData>
+export type ProjectSessionsArray = SessionData[]; // Array version for components that prefer arrays
+export type ProjectSessionEntry = [string, SessionData]; // [date, sessionData] tuple

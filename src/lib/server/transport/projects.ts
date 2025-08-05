@@ -1,10 +1,9 @@
 'use server';
 
-import { Project } from '@/schemas/project';
+import { Project, projectSchema } from '@/schemas/project';
 import { getDb } from '@/lib/server/firebase/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
-
-const PROJECTS_COLLECTION = 'projects';
+import { SessionData, sessionDataSchema } from '@/schemas/session';
 
 /**
  * Get all projects for a specific user, sorted by most recently updated
@@ -12,25 +11,36 @@ const PROJECTS_COLLECTION = 'projects';
 export async function getUserProjects(userId: string): Promise<Project[]> {
     try {
         const db = await getDb();
-        
+
         // Query projects where userId matches
-        const projectDocs = await db.collection(PROJECTS_COLLECTION)
+        const projectDocs = await db
+            .collection('projects')
             .where('userId', '==', userId)
             .orderBy('updatedAt', 'desc')
             .get();
+
+        const projects: Project[] = [];
         
-        const projects: Project[] = projectDocs.docs
-            .filter((doc) => doc.exists)
-            .map((doc) => {
-                const data = doc.data()!;
-                return {
-                    id: doc.id,
-                    ...data,
-                    createdAt: data.createdAt?.toDate() || new Date(),
-                    updatedAt: data.updatedAt?.toDate() || new Date(),
-                } as Project;
-            });
-        
+        for (const doc of projectDocs.docs) {
+            if (!doc.exists) continue;
+            
+            const data = doc.data()!;
+            const projectData = {
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt?.toDate() || new Date(),
+                updatedAt: data.updatedAt?.toDate() || new Date(),
+            };
+            
+            const result = projectSchema.safeParse(projectData);
+            if (!result.success) {
+                console.error('Invalid project data for doc', doc.id, ':', result.error);
+                continue;
+            }
+            
+            projects.push(result.data);
+        }
+
         return projects;
     } catch (error) {
         console.error('Error fetching user projects:', error);
@@ -44,17 +54,25 @@ export async function getUserProjects(userId: string): Promise<Project[]> {
 export async function getProjectById(projectId: string): Promise<Project | null> {
     try {
         const db = await getDb();
-        const docRef = db.collection(PROJECTS_COLLECTION).doc(projectId);
-        const docSnap = await docRef.get();
+        const projectRef = db.collection('projects').doc(projectId);
+        const projectDoc = await projectRef.get();
 
-        if (docSnap.exists) {
-            const data = docSnap.data()!;
-            return {
-                id: docSnap.id,
+        if (projectDoc.exists) {
+            const data = projectDoc.data()!;
+            const projectData = {
+                id: projectDoc.id,
                 ...data,
                 createdAt: data.createdAt?.toDate() || new Date(),
                 updatedAt: data.updatedAt?.toDate() || new Date(),
-            } as Project;
+            };
+            
+            const result = projectSchema.safeParse(projectData);
+            if (!result.success) {
+                console.error('Invalid project data for doc', projectDoc.id, ':', result.error);
+                return null;
+            }
+            
+            return result.data;
         } else {
             return null;
         }
@@ -72,15 +90,15 @@ export async function createProject(
 ): Promise<string> {
     try {
         const db = await getDb();
-        const projectsRef = db.collection(PROJECTS_COLLECTION);
-        
+        const projectsRef = db.collection('projects');
+
         // Create the project document with server timestamps
         const docRef = await projectsRef.add({
             ...project,
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
         });
-        
+
         return docRef.id;
     } catch (error) {
         console.error('Error creating project:', error);
@@ -97,8 +115,8 @@ export async function updateProject(
 ): Promise<void> {
     try {
         const db = await getDb();
-        const docRef = db.collection(PROJECTS_COLLECTION).doc(projectId);
-        
+        const docRef = db.collection('projects').doc(projectId);
+
         await docRef.update({
             ...updates,
             updatedAt: FieldValue.serverTimestamp(),
@@ -115,10 +133,35 @@ export async function updateProject(
 export async function deleteProject(projectId: string): Promise<void> {
     try {
         const db = await getDb();
-        const docRef = db.collection(PROJECTS_COLLECTION).doc(projectId);
+        const docRef = db.collection('projects').doc(projectId);
         await docRef.delete();
     } catch (error) {
         console.error('Error deleting project:', error);
         throw error;
+    }
+}
+
+/**
+ * Get all sessions for a specific project
+ */
+export async function getProjectSessions(projectId: string): Promise<SessionData[]> {
+    try {
+        const db = await getDb();
+        const sessionsRef = db.collection('projects').doc(projectId).collection('sessions');
+        const sessionsSnapshot = await sessionsRef.get();
+
+        const sessions: SessionData[] = sessionsSnapshot.docs
+            .filter((doc) => doc.exists)
+            .map((doc) => doc.data() as SessionData);
+
+        const result = sessionDataSchema.array().safeParse(sessions);
+        if (!result.success) {
+            console.error('Invalid session data:', result.error);
+            return [];
+        }
+        return result.data;
+    } catch (error) {
+        console.error('Error fetching project sessions:', error);
+        return [];
     }
 }

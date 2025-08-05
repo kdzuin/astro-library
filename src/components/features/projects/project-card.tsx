@@ -22,21 +22,13 @@ function mapStatusToLabel(status: Project['status']): string {
 
 export function ProjectCard({
     id,
-    userId,
     name,
     description,
-    visibility,
     status,
     catalogueDesignation,
-    collectionIds,
     tags,
-    processingImageUrls,
-    finalImageUrls,
     sessions,
-    createdAt,
-    updatedAt,
 }: ProjectCardProps) {
-    const sessionCount = Object.keys(sessions || {}).length;
     const totalExposureTimeInSeconds = Object.values(sessions || {}).reduce(
         (total, session) =>
             total +
