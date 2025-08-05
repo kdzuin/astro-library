@@ -56,16 +56,12 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
         setIsLoading(true);
         setError(null);
 
-        console.log(data);
-
         try {
             const sessionData = {
-                date: data.date.toISOString().slice(0, 10),
+                date: format(data.date, 'yyyy-MM-dd'),
                 location: data.location,
                 tags: tagsStringToArray(data.tags),
             };
-
-            console.log(sessionData);
 
             const response = await fetch(`/api/projects/${projectId}/sessions`, {
                 method: 'POST',
