@@ -2,7 +2,7 @@ import { ProjectSessions as ProjectSessionsType } from '@/schemas/project';
 
 export function ProjectSessions({ sessions }: { sessions: ProjectSessionsType }) {
     return (
-        <table className="w-full">
+        <table className="decorated-table w-full">
             <caption>Project Sessions</caption>
             <colgroup>
                 <col />

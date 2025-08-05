@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,12 +14,14 @@ import {
 } from '@/components/ui/form';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const addSessionFormSchema = z.object({
-    name: z
-        .string('Please provide the name of the session, that would be used as a title')
-        .min(3, 'Session name must be at least 3 characters long'),
+    date: z.date('Please provide the date of the session'),
 });
 
 export type AddSessionFormSchema = z.infer<typeof addSessionFormSchema>;
@@ -33,7 +34,7 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
     const form = useForm<AddSessionFormSchema>({
         resolver: zodResolver(addSessionFormSchema),
         defaultValues: {
-            name: '',
+            date: new Date(),
         },
     });
 
@@ -62,17 +63,43 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
 
                 <FormField
                     control={form.control}
-                    name="name"
+                    name="date"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Session Name / Date</FormLabel>
+                            <FormLabel>Session Date</FormLabel>
                             <FormControl>
-                                <Input
-                                    placeholder="2025-04-01"
-                                    disabled={isLoading}
-                                    data-testid="session-name-input"
-                                    {...field}
-                                />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                disabled={isLoading}
+                                                variant={'outline'}
+                                                className={cn(
+                                                    'w-full pl-3 text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}
+                                            >
+                                                {field.value ? (
+                                                    format(field.value, 'PPP')
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) =>
+                                                date > new Date() || date < new Date('1900-01-01')
+                                            }
+                                            captionLayout="dropdown"
+                                        />
+                                    </PopoverContent>
+                                </Popover>
                             </FormControl>
                             <FormMessage data-testid="error-message" />
                         </FormItem>
