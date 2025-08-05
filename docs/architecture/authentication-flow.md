@@ -35,7 +35,7 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 ```
 
-### 2. Server-Side Auth Utilities (`/lib/server/auth/auth-utils.ts`)
+### 2. Server-Side Auth Utilities (`/lib/server/auth/utils.ts`)
 
 ```typescript
 import { cookies } from 'next/headers';
