@@ -25,10 +25,10 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  // ... other config
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    // ... other config
 };
 
 export const app = initializeApp(firebaseConfig);
@@ -43,26 +43,26 @@ import { getAuth } from 'firebase-admin/auth';
 
 // Create session cookie from Firebase ID token
 export async function createSessionCookie(idToken: string): Promise<string> {
-  const firebaseAuth = getAuth();
-  await firebaseAuth.verifyIdToken(idToken);
-  return await firebaseAuth.createSessionCookie(idToken, {
-    expiresIn: 60 * 60 * 24 * 5 * 1000, // 5 days
-  });
+    const firebaseAuth = getAuth();
+    await firebaseAuth.verifyIdToken(idToken);
+    return await firebaseAuth.createSessionCookie(idToken, {
+        expiresIn: 60 * 60 * 24 * 5 * 1000, // 5 days
+    });
 }
 
 // Verify session cookie and return user
 export async function getCurrentUser(): Promise<User | null> {
-  const sessionCookie = await getSessionCookie();
-  if (!sessionCookie) return null;
-  
-  return await verifySessionCookie(sessionCookie);
+    const sessionCookie = await getSessionCookie();
+    if (!sessionCookie) return null;
+
+    return await verifySessionCookie(sessionCookie);
 }
 
 // Require authentication (throws if not authenticated)
 export async function requireAuth(): Promise<User> {
-  const user = await getCurrentUser();
-  if (!user) throw new Error('Authentication required');
-  return user;
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Authentication required');
+    return user;
 }
 ```
 
@@ -77,27 +77,27 @@ export async function requireAuth(): Promise<User> {
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 const signInWithGoogle = async () => {
-  try {
-    // 2. Firebase handles OAuth flow
-    const result = await signInWithPopup(auth, new GoogleAuthProvider());
-    
-    // 3. Get ID token from Firebase
-    const idToken = await result.user.getIdToken();
-    
-    // 4. Send token to server to create session
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    });
-    
-    if (response.ok) {
-      // 5. Redirect to dashboard (middleware will handle)
-      window.location.href = '/dashboard';
+    try {
+        // 2. Firebase handles OAuth flow
+        const result = await signInWithPopup(auth, new GoogleAuthProvider());
+
+        // 3. Get ID token from Firebase
+        const idToken = await result.user.getIdToken();
+
+        // 4. Send token to server to create session
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken }),
+        });
+
+        if (response.ok) {
+            // 5. Redirect to dashboard (middleware will handle)
+            window.location.href = '/dashboard';
+        }
+    } catch (error) {
+        console.error('Sign in failed:', error);
     }
-  } catch (error) {
-    console.error('Sign in failed:', error);
-  }
 };
 ```
 
@@ -105,18 +105,18 @@ const signInWithGoogle = async () => {
 
 ```typescript
 const signOut = async () => {
-  try {
-    // 1. Sign out from Firebase client
-    await firebaseSignOut(auth);
-    
-    // 2. Clear server session
-    await fetch('/api/auth/logout', { method: 'POST' });
-    
-    // 3. Redirect to home
-    window.location.href = '/';
-  } catch (error) {
-    console.error('Sign out failed:', error);
-  }
+    try {
+        // 1. Sign out from Firebase client
+        await firebaseSignOut(auth);
+
+        // 2. Clear server session
+        await fetch('/api/auth/logout', { method: 'POST' });
+
+        // 3. Redirect to home
+        window.location.href = '/';
+    } catch (error) {
+        console.error('Sign out failed:', error);
+    }
 };
 ```
 
@@ -129,22 +129,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSessionCookie, setSessionCookie } from '@/lib/server/auth/auth-utils';
 
 export async function POST(request: NextRequest) {
-  try {
-    const { idToken } = await request.json();
-    
-    // 1. Verify ID token and create session cookie
-    const sessionCookie = await createSessionCookie(idToken);
-    
-    // 2. Set HTTP-only cookie
-    await setSessionCookie(sessionCookie);
-    
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Authentication failed' },
-      { status: 401 }
-    );
-  }
+    try {
+        const { idToken } = await request.json();
+
+        // 1. Verify ID token and create session cookie
+        const sessionCookie = await createSessionCookie(idToken);
+
+        // 2. Set HTTP-only cookie
+        await setSessionCookie(sessionCookie);
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
+    }
 }
 ```
 
@@ -152,16 +149,13 @@ export async function POST(request: NextRequest) {
 
 ```typescript
 export async function POST() {
-  try {
-    // Clear the session cookie
-    await clearSessionCookie();
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Logout failed' },
-      { status: 500 }
-    );
-  }
+    try {
+        // Clear the session cookie
+        await clearSessionCookie();
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ error: 'Logout failed' }, { status: 500 });
+    }
 }
 ```
 
@@ -172,27 +166,25 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const sessionCookie = request.cookies.get('session');
-  const hasSession = !!sessionCookie?.value;
+    const { pathname } = request.nextUrl;
+    const sessionCookie = request.cookies.get('session');
+    const hasSession = !!sessionCookie?.value;
 
-  // Redirect authenticated users from home to dashboard
-  if (hasSession && pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
+    // Redirect authenticated users from home to dashboard
+    if (hasSession && pathname === '/') {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
 
-  // Protect dashboard routes
-  if (!hasSession && pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
+    // Protect dashboard routes
+    if (!hasSession && pathname.startsWith('/dashboard')) {
+        return NextResponse.redirect(new URL('/', request.url));
+    }
 
-  return NextResponse.next();
+    return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
 ```
 
@@ -205,21 +197,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from './auth-utils';
 
 export function withAuth(handler: AuthenticatedHandler) {
-  return async (request: NextRequest, context: { params?: any } = {}) => {
-    try {
-      // 1. Verify session and get user
-      const user = await requireAuth();
-      
-      // 2. Call the actual handler with user context
-      return await handler(request, context, user);
-    } catch (error) {
-      // 3. Return 401 if authentication fails
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-  };
+    return async (request: NextRequest, context: { params?: any } = {}) => {
+        try {
+            // 1. Verify session and get user
+            const user = await requireAuth();
+
+            // 2. Call the actual handler with user context
+            return await handler(request, context, user);
+        } catch (error) {
+            // 3. Return 401 if authentication fails
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+    };
 }
 ```
 
@@ -230,18 +219,18 @@ export function withAuth(handler: AuthenticatedHandler) {
 import { withAuth } from '@/lib/server/auth/with-auth';
 
 export const GET = withAuth(async (request, context, user) => {
-  // User is guaranteed to be authenticated here
-  const projects = await getProjectsForUser(user.id);
-  return NextResponse.json({ projects });
+    // User is guaranteed to be authenticated here
+    const projects = await getProjectsForUser(user.id);
+    return NextResponse.json({ projects });
 });
 
 export const POST = withAuth(async (request, context, user) => {
-  const body = await request.json();
-  const project = await createProject({
-    ...body,
-    userId: user.id, // Ensure project belongs to authenticated user
-  });
-  return NextResponse.json({ project });
+    const body = await request.json();
+    const project = await createProject({
+        ...body,
+        userId: user.id, // Ensure project belongs to authenticated user
+    });
+    return NextResponse.json({ project });
 });
 ```
 
@@ -252,20 +241,20 @@ export const POST = withAuth(async (request, context, user) => {
 ```typescript
 // Session cookies are HTTP-only (immune to XSS)
 cookieStore.set('session', sessionCookie, {
-  httpOnly: true,           // Cannot be accessed via JavaScript
-  secure: true,             // HTTPS only in production
-  sameSite: 'lax',         // CSRF protection
-  maxAge: 5 * 24 * 60 * 60, // 5 days
-  path: '/',               // Available site-wide
+    httpOnly: true, // Cannot be accessed via JavaScript
+    secure: true, // HTTPS only in production
+    sameSite: 'lax', // CSRF protection
+    maxAge: 5 * 24 * 60 * 60, // 5 days
+    path: '/', // Available site-wide
 });
 ```
 
 ### 2. Server-Side Token Validation
 
-- All authentication happens server-side
-- Firebase Admin SDK validates tokens
-- No client-side auth state management needed
-- Session cookies automatically included in requests
+-   All authentication happens server-side
+-   Firebase Admin SDK validates tokens
+-   No client-side auth state management needed
+-   Session cookies automatically included in requests
 
 ### 3. Route Protection Layers
 
@@ -305,19 +294,19 @@ cookieStore.set('session', sessionCookie, {
 ```typescript
 // Handle authentication errors
 const handleAuthError = (error: any) => {
-  if (error.code === 'auth/popup-closed-by-user') {
-    // User closed the popup
-    return;
-  }
-  
-  if (error.code === 'auth/network-request-failed') {
-    // Network error
-    showError('Network error. Please try again.');
-    return;
-  }
-  
-  // Generic error
-  showError('Authentication failed. Please try again.');
+    if (error.code === 'auth/popup-closed-by-user') {
+        // User closed the popup
+        return;
+    }
+
+    if (error.code === 'auth/network-request-failed') {
+        // Network error
+        showError('Network error. Please try again.');
+        return;
+    }
+
+    // Generic error
+    showError('Authentication failed. Please try again.');
 };
 ```
 
@@ -326,23 +315,17 @@ const handleAuthError = (error: any) => {
 ```typescript
 // API route error handling
 export const GET = withAuth(async (request, context, user) => {
-  try {
-    // Your logic here
-  } catch (error) {
-    console.error('API Error:', error);
-    
-    if (error.message === 'Authentication required') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    try {
+        // Your logic here
+    } catch (error) {
+        console.error('API Error:', error);
+
+        if (error.message === 'Authentication required') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
 });
 ```
 
@@ -365,42 +348,45 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY----
 ### Manual Testing
 
 1. **Sign In Flow**:
-   - Visit home page
-   - Click "Sign In with Google"
-   - Complete OAuth flow
-   - Should redirect to dashboard
+
+    - Visit home page
+    - Click "Sign In with Google"
+    - Complete OAuth flow
+    - Should redirect to dashboard
 
 2. **Protected Routes**:
-   - Try accessing `/dashboard` without signing in
-   - Should redirect to home page
+
+    - Try accessing `/dashboard` without signing in
+    - Should redirect to home page
 
 3. **API Protection**:
-   - Make API request without authentication
-   - Should receive 401 Unauthorized
+
+    - Make API request without authentication
+    - Should receive 401 Unauthorized
 
 4. **Sign Out Flow**:
-   - Sign out from dashboard
-   - Should redirect to home page
-   - Try accessing protected routes (should be blocked)
+    - Sign out from dashboard
+    - Should redirect to home page
+    - Try accessing protected routes (should be blocked)
 
 ### Automated Testing
 
 ```typescript
 // Example test for API protection
 describe('API Authentication', () => {
-  it('should return 401 for unauthenticated requests', async () => {
-    const response = await fetch('/api/projects');
-    expect(response.status).toBe(401);
-  });
-
-  it('should allow authenticated requests', async () => {
-    const response = await fetch('/api/projects', {
-      headers: {
-        Cookie: 'session=valid_session_cookie'
-      }
+    it('should return 401 for unauthenticated requests', async () => {
+        const response = await fetch('/api/projects');
+        expect(response.status).toBe(401);
     });
-    expect(response.status).toBe(200);
-  });
+
+    it('should allow authenticated requests', async () => {
+        const response = await fetch('/api/projects', {
+            headers: {
+                Cookie: 'session=valid_session_cookie',
+            },
+        });
+        expect(response.status).toBe(200);
+    });
 });
 ```
 
@@ -419,18 +405,21 @@ describe('API Authentication', () => {
 ### Common Issues
 
 1. **"Authentication required" errors**:
-   - Check if session cookie is being set correctly
-   - Verify Firebase Admin SDK configuration
-   - Ensure ID token is valid
+
+    - Check if session cookie is being set correctly
+    - Verify Firebase Admin SDK configuration
+    - Ensure ID token is valid
 
 2. **Redirect loops**:
-   - Check middleware matcher patterns
-   - Verify session cookie validation logic
+
+    - Check middleware matcher patterns
+    - Verify session cookie validation logic
 
 3. **CORS issues**:
-   - Ensure proper domain configuration in Firebase
-   - Check cookie SameSite settings
+
+    - Ensure proper domain configuration in Firebase
+    - Check cookie SameSite settings
 
 4. **Token expiration**:
-   - Implement token refresh logic if needed
-   - Handle expired session gracefully
+    - Implement token refresh logic if needed
+    - Handle expired session gracefully

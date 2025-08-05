@@ -23,12 +23,12 @@
 
 ```javascript
 const firebaseConfig = {
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "..."
+    apiKey: '...',
+    authDomain: '...',
+    projectId: '...',
+    storageBucket: '...',
+    messagingSenderId: '...',
+    appId: '...',
 };
 ```
 
@@ -38,9 +38,9 @@ const firebaseConfig = {
 2. Click "Generate new private key"
 3. Save the JSON file securely
 4. From this file, you'll need:
-   - `project_id`
-   - `client_email`
-   - `private_key`
+    - `project_id`
+    - `client_email`
+    - `private_key`
 
 ### 5. Set Up Google OAuth Credentials
 

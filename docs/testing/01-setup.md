@@ -6,11 +6,11 @@ This guide walks you through setting up testing in the Astro Library project fro
 
 The Astro Library uses a comprehensive testing stack:
 
-- **Vitest** - Fast test runner with great TypeScript support
-- **React Testing Library** - Component testing focused on user behavior
-- **@testing-library/jest-dom** - Enhanced DOM matchers
-- **Storybook** - Visual component development and testing
-- **Playwright** - End-to-end testing
+-   **Vitest** - Fast test runner with great TypeScript support
+-   **React Testing Library** - Component testing focused on user behavior
+-   **@testing-library/jest-dom** - Enhanced DOM matchers
+-   **Storybook** - Visual component development and testing
+-   **Playwright** - End-to-end testing
 
 ## Installation
 
@@ -39,21 +39,21 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 const dirname =
-  typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+    typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [react()],
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
-    exclude: ['src/**/*.stories.{js,ts,jsx,tsx}'],
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(dirname, './src'),
+    plugins: [react()],
+    test: {
+        environment: 'jsdom',
+        setupFiles: ['./src/test/setup.ts'],
+        include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+        exclude: ['src/**/*.stories.{js,ts,jsx,tsx}'],
     },
-  },
+    resolve: {
+        alias: {
+            '@': path.resolve(dirname, './src'),
+        },
+    },
 });
 ```
 
@@ -109,13 +109,13 @@ Add these scripts to your `package.json`:
 
 ```json
 {
-  "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "test:storybook": "test-storybook"
-  }
+    "scripts": {
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:ui": "vitest --ui",
+        "test:coverage": "vitest run --coverage",
+        "test:storybook": "test-storybook"
+    }
 }
 ```
 
@@ -129,13 +129,13 @@ Create `src/lib/utils/example.test.ts`:
 import { describe, it, expect } from 'vitest';
 
 function add(a: number, b: number): number {
-  return a + b;
+    return a + b;
 }
 
 describe('Example Test', () => {
-  it('adds two numbers correctly', () => {
-    expect(add(2, 3)).toBe(5);
-  });
+    it('adds two numbers correctly', () => {
+        expect(add(2, 3)).toBe(5);
+    });
 });
 ```
 
@@ -155,6 +155,7 @@ npm run test:ui
 ### 3. Expected Output
 
 You should see:
+
 ```
 ✓ src/lib/utils/example.test.ts (1 test) 2ms
   ✓ Example Test > adds two numbers correctly
@@ -223,6 +224,6 @@ vitest.config.ts           # Vitest configuration
 
 ## Resources
 
-- [Vitest Documentation](https://vitest.dev/)
-- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
-- [Jest-DOM Matchers](https://github.com/testing-library/jest-dom)
+-   [Vitest Documentation](https://vitest.dev/)
+-   [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+-   [Jest-DOM Matchers](https://github.com/testing-library/jest-dom)

@@ -34,73 +34,83 @@ Welcome to the Astro Library testing documentation! This folder contains compreh
 
 ## 🚀 Quick Start
 
-### 1. **New to Testing?** 
+### 1. **New to Testing?**
+
 Start with [Setup Guide](./01-setup.md) to configure your testing environment.
 
-### 2. **Testing Components?** 
+### 2. **Testing Components?**
+
 Jump to [Component Testing](./02-component-testing.md) for React component testing patterns.
 
-### 3. **Working with Auth?** 
+### 3. **Working with Auth?**
+
 Check [Authentication Testing](./03-auth-testing.md) for login/logout and protected route testing.
 
-### 4. **Building APIs?** 
+### 4. **Building APIs?**
+
 Read [API Testing](./04-api-testing.md) for testing Next.js API routes.
 
 ## 🛠️ Testing Stack Overview
 
 The Astro Library uses a modern, comprehensive testing stack:
 
-- **🧪 Vitest** - Fast test runner with great TypeScript support
-- **⚛️ React Testing Library** - Component testing focused on user behavior  
-- **🎭 Playwright** - End-to-end testing for complete user flows
-- **📚 Storybook** - Visual component development and testing
-- **🔥 Firebase Mocking** - Mock authentication and database calls
+-   **🧪 Vitest** - Fast test runner with great TypeScript support
+-   **⚛️ React Testing Library** - Component testing focused on user behavior
+-   **🎭 Playwright** - End-to-end testing for complete user flows
+-   **📚 Storybook** - Visual component development and testing
+-   **🔥 Firebase Mocking** - Mock authentication and database calls
 
 ## 📋 Testing Checklist
 
 Use this checklist to ensure comprehensive test coverage:
 
 ### ✅ Unit Tests
-- [ ] Utility functions (validation, formatting, calculations)
-- [ ] Business logic functions
-- [ ] Auth helper functions
-- [ ] Data transformation functions
 
-### ✅ Component Tests  
-- [ ] Component rendering with props
-- [ ] User interactions (clicks, form submissions)
-- [ ] Conditional rendering (loading, error states)
-- [ ] Accessibility features
+-   [ ] Utility functions (validation, formatting, calculations)
+-   [ ] Business logic functions
+-   [ ] Auth helper functions
+-   [ ] Data transformation functions
+
+### ✅ Component Tests
+
+-   [ ] Component rendering with props
+-   [ ] User interactions (clicks, form submissions)
+-   [ ] Conditional rendering (loading, error states)
+-   [ ] Accessibility features
 
 ### ✅ Integration Tests
-- [ ] API routes with authentication
-- [ ] Database operations
-- [ ] External service integrations
-- [ ] Server-side hooks and middleware
+
+-   [ ] API routes with authentication
+-   [ ] Database operations
+-   [ ] External service integrations
+-   [ ] Server-side hooks and middleware
 
 ### ✅ End-to-End Tests
-- [ ] Complete user workflows
-- [ ] Authentication flows
-- [ ] Cross-page navigation
-- [ ] Form submissions and data persistence
+
+-   [ ] Complete user workflows
+-   [ ] Authentication flows
+-   [ ] Cross-page navigation
+-   [ ] Form submissions and data persistence
 
 ## 🎯 Testing Philosophy
 
 **Test what users see and do, not implementation details.**
 
 ### ✅ Good Testing Practices
-- Test user interactions and behaviors
-- Use realistic test data
-- Test both success and error scenarios
-- Mock external dependencies
-- Keep tests focused and isolated
+
+-   Test user interactions and behaviors
+-   Use realistic test data
+-   Test both success and error scenarios
+-   Mock external dependencies
+-   Keep tests focused and isolated
 
 ### ❌ Avoid These Patterns
-- Testing internal component state
-- Testing implementation details
-- Overly complex test setup
-- Brittle selectors and queries
-- Tests that depend on other tests
+
+-   Testing internal component state
+-   Testing implementation details
+-   Overly complex test setup
+-   Brittle selectors and queries
+-   Tests that depend on other tests
 
 ## 🔧 Common Commands
 
@@ -161,24 +171,27 @@ vitest.config.ts              # Vitest configuration
 Follow the Red-Green-Refactor cycle:
 
 ### 🔴 Red - Write Failing Test
+
 ```typescript
 it('validates email format', () => {
-  expect(validateEmail('invalid-email')).toBe(false);
+    expect(validateEmail('invalid-email')).toBe(false);
 });
 ```
 
 ### 🟢 Green - Make Test Pass
+
 ```typescript
 function validateEmail(email: string): boolean {
-  return email.includes('@');
+    return email.includes('@');
 }
 ```
 
 ### 🔵 Refactor - Improve Code
+
 ```typescript
 function validateEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
 ```
 
@@ -210,6 +223,7 @@ function validateEmail(email: string): boolean {
 </table>
 
 ### Debugging Commands
+
 ```typescript
 // See what's rendered
 screen.debug();
@@ -220,7 +234,7 @@ logRoles(container);
 
 // Wait for async operations
 await waitFor(() => {
-  expect(screen.getByText('Loaded')).toBeInTheDocument();
+    expect(screen.getByText('Loaded')).toBeInTheDocument();
 });
 ```
 
@@ -228,10 +242,10 @@ await waitFor(() => {
 
 Aim for these coverage targets:
 
-- **Statements**: 80%+
-- **Branches**: 75%+  
-- **Functions**: 80%+
-- **Lines**: 80%+
+-   **Statements**: 80%+
+-   **Branches**: 75%+
+-   **Functions**: 80%+
+-   **Lines**: 80%+
 
 ```bash
 # Generate coverage report
@@ -240,11 +254,11 @@ npm run test:coverage
 
 ## 🔗 External Resources
 
-- [Vitest Documentation](https://vitest.dev/)
-- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
-- [Jest-DOM Matchers](https://github.com/testing-library/jest-dom)
-- [Playwright Documentation](https://playwright.dev/)
-- [Testing Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
+-   [Vitest Documentation](https://vitest.dev/)
+-   [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+-   [Jest-DOM Matchers](https://github.com/testing-library/jest-dom)
+-   [Playwright Documentation](https://playwright.dev/)
+-   [Testing Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
 
 ## 🤝 Contributing
 
@@ -267,4 +281,4 @@ When adding new tests:
 
 **Happy Testing! 🧪✨**
 
-*For questions or improvements to this documentation, please create an issue or submit a pull request.*
+_For questions or improvements to this documentation, please create an issue or submit a pull request._

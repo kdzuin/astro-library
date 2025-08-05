@@ -16,20 +16,22 @@ Internal Code (Server Components) ──────┘
 
 **For internal application code that runs on the server:**
 
-- ✅ **Server Components** - Direct data fetching
-- ✅ **Server Actions** - Form submissions, mutations
-- ✅ **Background jobs** - Cron jobs, scheduled tasks
-- ✅ **Internal business logic** - Data processing
-- ✅ **Testing** - Easier to mock and test
+-   ✅ **Server Components** - Direct data fetching
+-   ✅ **Server Actions** - Form submissions, mutations
+-   ✅ **Background jobs** - Cron jobs, scheduled tasks
+-   ✅ **Internal business logic** - Data processing
+-   ✅ **Testing** - Easier to mock and test
 
 **Benefits:**
-- **Performance**: No HTTP overhead
-- **Type Safety**: Full TypeScript support
-- **Error Handling**: Native exception handling
-- **Caching**: Automatic Next.js caching
-- **Authentication**: Direct server-side auth hooks
+
+-   **Performance**: No HTTP overhead
+-   **Type Safety**: Full TypeScript support
+-   **Error Handling**: Native exception handling
+-   **Caching**: Automatic Next.js caching
+-   **Authentication**: Direct server-side auth hooks
 
 **Example:**
+
 ```typescript
 // ✅ Server Component using transport
 export default async function ProjectsPage() {
@@ -43,20 +45,22 @@ export default async function ProjectsPage() {
 
 **For external clients and HTTP-based interactions:**
 
-- ✅ **External clients** - Mobile apps, third-party services
-- ✅ **Client-side JavaScript** - Browser-based data fetching
-- ✅ **Webhooks** - External service callbacks
-- ✅ **Public API** - Developer-facing endpoints
-- ✅ **Cross-origin requests** - Different domains
+-   ✅ **External clients** - Mobile apps, third-party services
+-   ✅ **Client-side JavaScript** - Browser-based data fetching
+-   ✅ **Webhooks** - External service callbacks
+-   ✅ **Public API** - Developer-facing endpoints
+-   ✅ **Cross-origin requests** - Different domains
 
 **Benefits:**
-- **Standardized**: REST/HTTP conventions
-- **Cacheable**: HTTP cache headers
-- **Accessible**: Any HTTP client can use
-- **Documented**: OpenAPI/Swagger compatible
-- **Versioned**: API versioning strategies
+
+-   **Standardized**: REST/HTTP conventions
+-   **Cacheable**: HTTP cache headers
+-   **Accessible**: Any HTTP client can use
+-   **Documented**: OpenAPI/Swagger compatible
+-   **Versioned**: API versioning strategies
 
 **Example:**
+
 ```typescript
 // ✅ API Route for external clients
 export const GET = withAuth(async (request, context, user) => {
@@ -82,11 +86,12 @@ src/lib/server/transport/
 ```
 
 **Transport functions should:**
-- Be pure business logic
-- Handle database operations
-- Return typed data structures
-- Throw meaningful exceptions
-- Be easily testable
+
+-   Be pure business logic
+-   Handle database operations
+-   Return typed data structures
+-   Throw meaningful exceptions
+-   Be easily testable
 
 ### 2. API Route Structure
 
@@ -103,11 +108,12 @@ src/app/api/
 ```
 
 **API routes should:**
-- Be thin wrappers around transport functions
-- Handle HTTP concerns (status codes, headers)
-- Validate input/output schemas
-- Provide consistent error responses
-- Include proper authentication
+
+-   Be thin wrappers around transport functions
+-   Handle HTTP concerns (status codes, headers)
+-   Validate input/output schemas
+-   Provide consistent error responses
+-   Include proper authentication
 
 ### 3. Code Examples
 
@@ -147,6 +153,7 @@ export function ProjectsClient() {
 ## Testing Strategy
 
 ### Transport Functions
+
 ```typescript
 // ✅ Easy to test - Mock dependencies directly
 vi.mock('@/lib/server/firebase/firestore');
@@ -155,6 +162,7 @@ expect(projects).toHaveLength(2);
 ```
 
 ### API Routes
+
 ```typescript
 // ✅ Test HTTP interface - Mock transport functions
 vi.mock('@/lib/server/transport/projects', () => ({
@@ -166,32 +174,35 @@ expect(response.status).toBe(200);
 
 ## Performance Considerations
 
-| Operation | Transport | API Route | Performance Impact |
-|-----------|-----------|-----------|-------------------|
-| Server Component | ✅ Direct | ❌ HTTP overhead | ~10-50ms saved |
-| Client Component | ❌ Not possible | ✅ Standard | Normal |
-| Server Action | ✅ Direct | ❌ HTTP overhead | ~10-50ms saved |
-| External Client | ❌ Not accessible | ✅ Standard | Normal |
+| Operation        | Transport         | API Route        | Performance Impact |
+| ---------------- | ----------------- | ---------------- | ------------------ |
+| Server Component | ✅ Direct         | ❌ HTTP overhead | ~10-50ms saved     |
+| Client Component | ❌ Not possible   | ✅ Standard      | Normal             |
+| Server Action    | ✅ Direct         | ❌ HTTP overhead | ~10-50ms saved     |
+| External Client  | ❌ Not accessible | ✅ Standard      | Normal             |
 
 ## Security Considerations
 
 ### Transport Functions
-- Run in server context only
-- Direct access to auth context
-- No HTTP attack vectors
-- Type-safe parameters
+
+-   Run in server context only
+-   Direct access to auth context
+-   No HTTP attack vectors
+-   Type-safe parameters
 
 ### API Routes
-- Exposed to HTTP requests
-- Require explicit authentication
-- Input validation essential
-- Rate limiting recommended
+
+-   Exposed to HTTP requests
+-   Require explicit authentication
+-   Input validation essential
+-   Rate limiting recommended
 
 ## Migration Guidelines
 
 If you have existing code that needs to be migrated:
 
 ### From API calls to Transport (Internal)
+
 ```typescript
 // Before: Internal API call
 const response = await fetch('/api/projects');
@@ -202,6 +213,7 @@ const projects = await getUserProjects(user.id);
 ```
 
 ### From Transport to API (External)
+
 ```typescript
 // Before: Direct transport (not accessible externally)
 const projects = await getUserProjects(userId);
@@ -213,11 +225,12 @@ const projects = await getUserProjects(userId);
 ## Conclusion
 
 This dual-layer approach provides:
-- **Optimal performance** for internal operations
-- **Standard HTTP interface** for external clients
-- **Clear separation of concerns**
-- **Easy testing and maintenance**
-- **Type safety** where possible
-- **Flexibility** for different use cases
+
+-   **Optimal performance** for internal operations
+-   **Standard HTTP interface** for external clients
+-   **Clear separation of concerns**
+-   **Easy testing and maintenance**
+-   **Type safety** where possible
+-   **Flexibility** for different use cases
 
 Follow these guidelines to maintain a clean, efficient, and maintainable architecture.
