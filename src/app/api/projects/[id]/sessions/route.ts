@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/server/auth/with-auth';
 import { getProjectById } from '@/lib/server/transport/projects';
 import { sessionDataSchema } from '@/schemas/session';
+import { revalidatePath } from 'next/cache';
 
 export const POST = withAuth(async (request, context, user) => {
     try {
@@ -40,6 +41,8 @@ export const POST = withAuth(async (request, context, user) => {
         // const sessionId = await createSession(validatedData);
         console.log(validatedData);
         const sessionId = 'test';
+
+        revalidatePath(`/projects/${projectId}`);
 
         return NextResponse.json(
             {

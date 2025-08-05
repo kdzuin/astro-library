@@ -77,13 +77,11 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
             }
 
             await response.json();
-
-            // Navigate to the parent project
-            router.push(`/projects/${projectId}`);
         } catch (error) {
             setError(error instanceof Error ? error.message : 'An error occurred');
         } finally {
             setIsLoading(false);
+            window.location.replace(`/projects/${projectId}`);
         }
     };
 

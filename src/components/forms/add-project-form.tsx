@@ -89,12 +89,12 @@ export default function AddProjectForm() {
 
             await response.json();
 
-            // Navigate to the new project or projects list
-            router.push('/projects');
+            // Navigate back and refresh to show the new project
         } catch (error) {
             setError(error instanceof Error ? error.message : 'An error occurred');
         } finally {
             setIsLoading(false);
+            window.location.replace('/projects');
         }
     };
 

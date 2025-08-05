@@ -42,8 +42,16 @@ export const projectSchema = z.object({
     updatedAt: z.date(),
 });
 
+// Schema for creating a new project (excludes server-generated fields)
+export const createProjectSchema = projectSchema.omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+});
+
 // For cases where you need the exact output type from the schema
 export type Project = z.infer<typeof projectSchema>;
+export type CreateProject = z.infer<typeof createProjectSchema>;
 
 // Derived types for working with project sessions
 export type ProjectSessions = Project['sessions']; // Record<string, SessionData>
