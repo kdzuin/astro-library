@@ -24,6 +24,7 @@ import {
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { tagsStringToArray } from '@/lib/utils';
 
 const addProjectFormSchema = z.object({
     name: z
@@ -60,12 +61,7 @@ export default function AddProjectForm() {
                 name: data.name,
                 description: data.description || '',
                 visibility: data.visibility,
-                tags: data.tags
-                    ? data.tags
-                          .split(',')
-                          .map((tag) => tag.trim())
-                          .filter(Boolean)
-                    : [],
+                tags: tagsStringToArray(data.tags),
                 status: 'planning' as const,
                 sessions: {},
                 processingNotes: '',

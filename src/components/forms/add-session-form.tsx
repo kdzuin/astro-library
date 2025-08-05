@@ -18,7 +18,7 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, tagsStringToArray } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 
 const addSessionFormSchema = z.object({
@@ -60,7 +60,7 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
             const sessionData = {
                 date: data.date.toISOString().slice(0, 10),
                 location: data.location,
-                tags: data.tags ? data.tags.split(',').map((tag) => tag.trim()) : [],
+                tags: tagsStringToArray(data.tags),
             };
 
             const response = await fetch(`/api/projects/${projectId}/sessions`, {
