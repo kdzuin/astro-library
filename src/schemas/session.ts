@@ -13,9 +13,8 @@ export const sessionDateSchema = z
 
 export type SessionDate = z.infer<typeof sessionDateSchema>;
 
-// Session data that gets stored within a project for a specific date
-export const sessionDataSchema = z.object({
-    id: z.string(), // Firestore document ID
+// Base session data that gets stored in Firestore (without id and projectId)
+export const sessionBaseSchema = z.object({
     date: sessionDateSchema, // YYYY-MM-DD
     location: z.string().optional(), // Imaging location
 
@@ -47,15 +46,22 @@ export const sessionDataSchema = z.object({
     tags: z.array(z.string()).default([]),
 });
 
+// Full session data with id, projectId, and userId (added by transport layer)
+export const sessionDataSchema = sessionBaseSchema.extend({
+    id: z.string(), // Firestore document ID
+    projectId: z.string(), // Project ID (added by transport layer)
+    userId: z.string(), // User ID (added by transport layer)
+});
+
 // For cases where you need the exact output type from the schema
 export type SessionData = z.infer<typeof sessionDataSchema>;
 
 // Schema for creating new session data (all fields optional except date)
-export const createSessionDataSchema = sessionDataSchema.partial().required({ date: true });
+export const createSessionDataSchema = sessionBaseSchema.partial().required({ date: true });
 
 export type CreateSessionDataInput = z.infer<typeof createSessionDataSchema>;
 
 // Schema for updating session data (all fields optional)
-export const updateSessionDataSchema = sessionDataSchema.partial();
+export const updateSessionDataSchema = sessionBaseSchema.partial();
 
 export type UpdateSessionDataInput = z.infer<typeof updateSessionDataSchema>;

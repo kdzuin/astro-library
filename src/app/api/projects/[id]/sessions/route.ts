@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/server/auth/with-auth';
 import { getProjectById } from '@/lib/server/transport/projects';
 import { addSession } from '@/lib/server/transport/sessions';
-import { sessionDataSchema } from '@/schemas/session';
+import { createSessionDataSchema } from '@/schemas/session';
 
 export const POST = withAuth(async (request, context, user) => {
     try {
@@ -35,11 +35,14 @@ export const POST = withAuth(async (request, context, user) => {
             );
         }
 
-        const validatedData = sessionDataSchema.parse({
+        const validatedData = createSessionDataSchema.parse({
             ...body,
+            filters: body.filters || [],
+            equipmentIds: body.equipmentIds || [],
+            tags: body.tags || [],
         });
 
-        const sessionId = await addSession(projectId, validatedData);
+        const sessionId = await addSession(projectId, user.id, validatedData);
 
         return NextResponse.json(
             {
