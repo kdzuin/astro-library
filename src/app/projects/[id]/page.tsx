@@ -11,7 +11,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { getProjectById } from '@/lib/server/transport/projects';
-import { getSessionByProjectId } from '@/lib/server/transport/sessions';
+import { getSessionsByProjectId } from '@/lib/server/transport/sessions';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -19,7 +19,7 @@ import { notFound } from 'next/navigation';
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
     const projectId = (await params).id;
     const project = await getProjectById(projectId);
-    const sessions = await getSessionByProjectId(projectId);
+    const sessions = await getSessionsByProjectId(projectId);
 
     if (!project) {
         return notFound();
@@ -30,7 +30,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <PageHeader hasBackButton title={project.name} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                <section>
+                <section className="lg:col-span-2">
                     <Card>
                         <CardHeader>
                             <CardTitle>Sessions</CardTitle>

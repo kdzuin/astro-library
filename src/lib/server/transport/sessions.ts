@@ -7,7 +7,7 @@ import { SessionData, sessionDataSchema } from '@/schemas/session';
 /**
  * Get all sessions for a specific project
  */
-export async function getSessionByProjectId(projectId: string): Promise<SessionData[]> {
+export async function getSessionsByProjectId(projectId: string): Promise<SessionData[]> {
     try {
         const db = await getDb();
         const sessionsRef = db

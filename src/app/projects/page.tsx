@@ -1,20 +1,13 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Plus, RefreshCw } from 'lucide-react';
+import { Calendar, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Project } from '@/schemas/project';
 import { ProjectCard } from '@/components/features/projects/project-card';
 import { PageHeader } from '@/components/layout/page-header';
 import { requireAuth } from '@/lib/server/auth/utils';
 import { getProjectsByUserId } from '@/lib/server/transport/projects';
-import { revalidatePath } from 'next/cache';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-// Server Action for refreshing projects data
-async function refreshProjects() {
-    'use server';
-    revalidatePath('/projects');
-}
 
 // Server-side data fetching with caching
 async function fetchProjects(): Promise<Project[]> {
@@ -41,26 +34,12 @@ export default async function ProjectsPage() {
                 title="My Projects"
                 actions={
                     <>
-                        <form action={refreshProjects}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button type="submit" variant="outline" size="icon">
-                                        <RefreshCw />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Refresh Projects</TooltipContent>
-                            </Tooltip>
-                        </form>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="outline" size="icon" asChild>
-                                    <Link href="/projects/add">
-                                        <Plus />
-                                    </Link>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Add Project</TooltipContent>
-                        </Tooltip>
+                        <Button variant="default" asChild>
+                            <Link href="/projects/add">
+                                <Plus />
+                                Add Project
+                            </Link>
+                        </Button>
                     </>
                 }
             />

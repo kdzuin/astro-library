@@ -15,7 +15,12 @@ interface PageHeaderProps {
 export function PageHeader({ title, actions, hasBackButton, className = '' }: PageHeaderProps) {
     return (
         <header
-            className={`flex justify-between items-stretch flex-col-reverse lg:items-center lg:flex-row gap-4 ${className}`}
+            className={cn(
+                'flex flex-col',
+                'gap-2 lg:gap-4',
+                'lg:justify-between lg:items-center lg:flex-row',
+                className
+            )}
         >
             <div className="flex items-center gap-2">
                 {hasBackButton && <BackButton />}
@@ -23,12 +28,13 @@ export function PageHeader({ title, actions, hasBackButton, className = '' }: Pa
             </div>
             <div
                 className={cn(
-                    'flex items-center gap-2 self-start justify-between w-full lg:w-auto',
-                    !actions && 'max-lg:absolute max-lg:right-4 max-lg:top-4 w-auto'
+                    'flex items-center gap-2 self-start justify-between w-full lg:w-auto'
                 )}
             >
                 <div className="flex items-center gap-2">{actions}</div>
-                <SidebarTrigger />
+                <div className="max-lg:absolute max-lg:right-4 max-lg:top-4 w-auto">
+                    <SidebarTrigger />
+                </div>
             </div>
         </header>
     );

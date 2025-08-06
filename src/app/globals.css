@@ -159,6 +159,11 @@
             @apply border-b;
         }
 
+        thead th {
+            @apply align-bottom;
+            @apply leading-tight;
+        }
+
         tbody tr {
             @apply border-b;
         }
@@ -169,6 +174,7 @@
         td,
         th {
             @apply text-start;
+            @apply align-top;
             @apply py-1 px-2 pe-4;
         }
         th {

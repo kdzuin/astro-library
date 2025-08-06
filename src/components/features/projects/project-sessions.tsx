@@ -13,7 +13,7 @@ export function ProjectSessions({ sessions, projectId }: ProjectSessionsProps) {
             <colgroup>
                 <col />
                 <col />
-                <col />
+                <col width="50%" />
                 <col />
             </colgroup>
             <thead>
