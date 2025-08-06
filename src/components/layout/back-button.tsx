@@ -7,8 +7,12 @@ import { Button } from '@/components/ui/button';
 export function BackButton() {
     const router = useRouter();
 
+    const handleBack = () => {
+        router.push('.');
+    };
+
     return (
-        <Button variant="secondary" size="icon" onClick={() => router.back()}>
+        <Button variant="secondary" size="icon" onClick={handleBack}>
             <ArrowLeftIcon />
         </Button>
     );

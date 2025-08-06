@@ -24,7 +24,7 @@ export function PageHeader({ title, actions, hasBackButton, className = '' }: Pa
             <div
                 className={cn(
                     'flex items-center gap-2 self-start justify-between w-full lg:w-auto',
-                    !actions && 'max-lg:absolute max-lg:right-4 max-lg:top-4'
+                    !actions && 'max-lg:absolute max-lg:right-4 max-lg:top-4 w-auto'
                 )}
             >
                 <div className="flex items-center gap-2">{actions}</div>
