@@ -186,3 +186,127 @@ export async function getAcquisitionDetailsBySessionId(
         return [];
     }
 }
+
+/**
+ * Get a single session by ID with its acquisition details
+ */
+export async function getSessionById(
+    projectId: string,
+    sessionId: string
+): Promise<(SessionData & { acquisitionDetails: AcquisitionDetailsData[] }) | null> {
+    try {
+        const db = await getDb();
+
+        // Get session document
+        const sessionDoc = await db
+            .collection('projects')
+            .doc(projectId)
+            .collection('sessions')
+            .doc(sessionId)
+            .get();
+
+        if (!sessionDoc.exists) {
+            return null;
+        }
+
+        const sessionData = sessionDoc.data();
+
+        // Get acquisition details for this session
+        const acquisitionDetailsRef = db
+            .collection('projects')
+            .doc(projectId)
+            .collection('sessions')
+            .doc(sessionId)
+            .collection('acquisitionDetails')
+            .orderBy('createdAt', 'asc');
+
+        const acquisitionSnapshot = await acquisitionDetailsRef.get();
+
+        const acquisitionDetails = acquisitionSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt?.toDate(),
+                updatedAt: data.updatedAt?.toDate(),
+            } as AcquisitionDetailsData;
+        });
+
+        return {
+            id: sessionDoc.id,
+            ...sessionData,
+            createdAt: sessionData?.createdAt?.toDate(),
+            updatedAt: sessionData?.updatedAt?.toDate(),
+            acquisitionDetails,
+        } as SessionData & { acquisitionDetails: AcquisitionDetailsData[] };
+    } catch (error) {
+        console.error('Error fetching session:', error);
+        return null;
+    }
+}
+
+/**
+ * Update session with acquisition details
+ */
+export async function updateSessionWithAcquisitionDetails(
+    projectId: string,
+    sessionId: string,
+    userId: string,
+    sessionData: Partial<
+        Omit<SessionData, 'id' | 'projectId' | 'userId' | 'createdAt' | 'updatedAt'>
+    >,
+    acquisitionDetails: Omit<
+        AcquisitionDetailsData,
+        'id' | 'projectId' | 'userId' | 'sessionId' | 'createdAt' | 'updatedAt'
+    >[]
+): Promise<void> {
+    try {
+        const db = await getDb();
+        const batch = db.batch();
+
+        // Update session if sessionData is provided
+        if (Object.keys(sessionData).length > 0) {
+            const sessionRef = db
+                .collection('projects')
+                .doc(projectId)
+                .collection('sessions')
+                .doc(sessionId);
+
+            batch.update(sessionRef, {
+                ...sessionData,
+                updatedAt: FieldValue.serverTimestamp(),
+            });
+        }
+
+        // Clear existing acquisition details
+        const existingAcquisitionRef = db
+            .collection('projects')
+            .doc(projectId)
+            .collection('sessions')
+            .doc(sessionId)
+            .collection('acquisitionDetails');
+
+        const existingSnapshot = await existingAcquisitionRef.get();
+        existingSnapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+
+        // Add new acquisition details
+        acquisitionDetails.forEach((detail) => {
+            const docRef = existingAcquisitionRef.doc();
+            batch.set(docRef, {
+                ...detail,
+                projectId,
+                sessionId,
+                userId,
+                createdAt: FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp(),
+            });
+        });
+
+        await batch.commit();
+    } catch (error) {
+        console.error('Error updating session with acquisition details:', error);
+        throw error;
+    }
+}
