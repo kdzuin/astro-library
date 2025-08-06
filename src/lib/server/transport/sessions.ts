@@ -1,11 +1,39 @@
 'use server';
 
 import { getDb } from '@/lib/server/firebase/firestore';
-import { sessionDataSchema, sessionBaseSchema, SessionData } from '@/schemas/session';
 import { FieldValue } from 'firebase-admin/firestore';
+
+export interface SessionData {
+    id: string;
+    projectId: string;
+    userId: string;
+    date: string;
+    location?: string;
+    notes?: string;
+    tags?: string[];
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+export interface AcquisitionDetailsData {
+    id: string;
+    projectId: string;
+    userId: string;
+    sessionId: string;
+    filterId?: string; // id of existing filter in the db
+    filterName?: string; // alternatively, custom name
+    exposureTime: number;
+    numberOfExposures: number;
+    gain?: number;
+    iso?: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
 
 /**
  * Get all sessions for a specific project
+ *
+ * @param projectId
  */
 export async function getSessionsByProjectId(projectId: string): Promise<SessionData[]> {
     try {
@@ -17,33 +45,28 @@ export async function getSessionsByProjectId(projectId: string): Promise<Session
             .orderBy('date', 'desc');
         const sessionsSnapshot = await sessionsRef.get();
 
-        const sessions: SessionData[] = [];
-
-        for (const doc of sessionsSnapshot.docs) {
-            if (!doc.exists) continue;
-
-            const data = doc.data()!;
-            const sessionData = {
+        return sessionsSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
                 id: doc.id,
+                projectId,
                 ...data,
-            };
-
-            const result = sessionDataSchema.safeParse(sessionData);
-            if (!result.success) {
-                console.error('Invalid session data for doc', doc.id, ':', result.error);
-                continue;
-            }
-
-            sessions.push(result.data);
-        }
-
-        return sessions;
+                createdAt: data.createdAt?.toDate(),
+                updatedAt: data.updatedAt?.toDate(),
+            } as SessionData;
+        });
     } catch (error) {
         console.error('Error fetching project sessions:', error);
         return [];
     }
 }
 
+/**
+ * Get all sessions for a specific user
+ *
+ * @param userId
+ * @param limit
+ */
 export async function getSessionsByUserId(userId: string, limit?: number): Promise<SessionData[]> {
     try {
         const db = await getDb();
@@ -58,38 +81,16 @@ export async function getSessionsByUserId(userId: string, limit?: number): Promi
         }
 
         const sessionsSnapshot = await sessionsQuery.get();
-        const sessions: SessionData[] = [];
 
-        // Process all session documents
-        for (const doc of sessionsSnapshot.docs) {
-            if (!doc.exists) continue;
-
-            const firestoreData = doc.data();
-
-            // First validate the Firestore data against the base schema
-            const baseResult = sessionBaseSchema.safeParse(firestoreData);
-            if (!baseResult.success) {
-                console.error('Invalid base session data for doc', doc.id, ':', baseResult.error);
-                continue;
-            }
-
-            // Then add the transport-layer fields and validate the complete object
-            const sessionData = {
-                ...baseResult.data,
+        return sessionsSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
                 id: doc.id,
-                projectId: firestoreData.projectId || '', // Use projectId from Firestore data
-                userId: firestoreData.userId || userId, // Use userId from Firestore data or fallback
-            };
-
-            const fullResult = sessionDataSchema.safeParse(sessionData);
-            if (fullResult.success) {
-                sessions.push(fullResult.data);
-            } else {
-                console.error('Invalid full session data for doc', doc.id, ':', fullResult.error);
-            }
-        }
-
-        return sessions;
+                ...data,
+                createdAt: data.createdAt?.toDate(),
+                updatedAt: data.updatedAt?.toDate(),
+            } as SessionData;
+        });
     } catch (error) {
         console.error('Error fetching user sessions:', error);
         return [];
@@ -98,6 +99,10 @@ export async function getSessionsByUserId(userId: string, limit?: number): Promi
 
 /**
  * Add new session for a specific project
+ *
+ * @param projectId
+ * @param userId
+ * @param session
  */
 export async function addSession(
     projectId: string,
@@ -118,5 +123,66 @@ export async function addSession(
     } catch (error) {
         console.error('Error adding project session:', error);
         throw error;
+    }
+}
+
+/**
+ * Add acquisition details to the session
+ */
+export async function addAcquisitionDetails(
+    projectId: string,
+    userId: string,
+    sessionId: string,
+    acquisitionDetails: Omit<
+        AcquisitionDetailsData,
+        'id' | 'projectId' | 'userId' | 'createdAt' | 'updatedAt'
+    >
+): Promise<string> {
+    try {
+        const db = await getDb();
+        const sessionsRef = db.collection('projects').doc(projectId).collection('sessions');
+        const docRef = await sessionsRef
+            .doc(sessionId)
+            .collection('acquisitionDetails')
+            .add({
+                ...acquisitionDetails,
+                projectId: projectId, // Store projectId in the document for collection group queries
+                userId: userId, // Store userId in the document for direct user queries
+                createdAt: FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp(),
+            });
+        return docRef.id;
+    } catch (error) {
+        console.error('Error adding project session:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get all acquisition details for a specific session
+ */
+export async function getAcquisitionDetailsBySessionId(
+    sessionId: string
+): Promise<AcquisitionDetailsData[]> {
+    try {
+        const db = await getDb();
+        const acquisitionDetailsRef = db
+            .collectionGroup('acquisitionDetails')
+            .where('sessionId', '==', sessionId);
+        const acquisitionDetailsSnapshot = await acquisitionDetailsRef.get();
+
+        return acquisitionDetailsSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                sessionId: sessionId,
+                ...data,
+                createdAt: data.createdAt?.toDate(),
+                updatedAt: data.updatedAt?.toDate(),
+            } as AcquisitionDetailsData;
+        });
+    } catch (error) {
+        console.error('Error fetching acquisition details:', error);
+        return [];
     }
 }

@@ -17,33 +17,8 @@ export type SessionDate = z.infer<typeof sessionDateSchema>;
 export const sessionBaseSchema = z.object({
     date: sessionDateSchema, // YYYY-MM-DD
     location: z.string().optional(), // Imaging location
-
-    // Filter/wavelength data
-    filters: z
-        .array(
-            z.object({
-                name: z.string(), // e.g. "Ha", "OIII", "SII", "L", "R", "G", "B"
-                exposureTime: z.number(), // Individual exposure time in seconds
-                frameCount: z.number(), // Number of frames for this filter
-            })
-        )
-        .default([]),
-
-    // Equipment used (references to Equipment entities)
-    equipmentIds: z.array(z.string()).default([]), // References to equipment used
-
-    // Environmental conditions
-    seeing: z.number().optional(), // Seeing conditions (1-5 scale)
-    transparency: z.number().optional(), // Sky transparency (1-5 scale)
-    temperature: z.number().optional(), // Temperature in Celsius
-    humidity: z.number().optional(), // Humidity percentage
-
-    // Session notes and issues
     notes: z.string().optional(),
-    issues: z.string().optional(), // Any issues encountered during the session
-
-    // Metadata
-    tags: z.array(z.string()).default([]),
+    tags: z.array(z.string()).optional(),
 });
 
 // Full session data with id, projectId, and userId (added by transport layer)

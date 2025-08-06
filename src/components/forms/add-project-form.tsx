@@ -63,11 +63,6 @@ export default function AddProjectForm() {
                 visibility: data.visibility,
                 tags: tagsStringToArray(data.tags),
                 status: 'planning' as const,
-                sessions: {},
-                processingNotes: '',
-                processingImageUrls: [],
-                finalImageUrls: [],
-                collectionIds: [],
             };
 
             const response = await fetch('/api/projects', {

@@ -13,7 +13,7 @@ export const collectionSchema = z.object({
     description: z.string().optional(),
     coverImageUrl: z.string().optional(),
     projectIds: z.array(z.string()).default([]), // Array of project IDs in this collection
-    tags: z.array(z.string()).default([]),
+    tags: z.array(z.string()).optional(),
     visibility: z.enum(['public', 'private']).default('private'),
     createdAt: z.date(),
     updatedAt: z.date(),

@@ -7,7 +7,6 @@ import { ProjectCard } from '@/components/features/projects/project-card';
 import { PageHeader } from '@/components/layout/page-header';
 import { requireAuth } from '@/lib/server/auth/utils';
 import { getProjectsByUserId } from '@/lib/server/transport/projects';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Server-side data fetching with caching
 async function fetchProjects(): Promise<Project[]> {
@@ -45,25 +44,7 @@ export default async function ProjectsPage() {
             />
 
             {projects.length === 0 ? (
-                <Card>
-                    <CardContent className="flex flex-col items-center justify-center py-12">
-                        <div className="text-center space-y-4">
-                            <div className="text-muted-foreground">
-                                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                <h3 className="text-lg font-medium">No projects yet</h3>
-                                <p className="text-sm">
-                                    Create your first astronomy project to get started.
-                                </p>
-                            </div>
-                            <Button asChild>
-                                <Link href="/projects/add">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Create Project
-                                </Link>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                <div className="p-6 text-center">No projects yet.</div>
             ) : (
                 <div className="grid lg:grid-cols-2 gap-6">
                     {projects.map((project) => (

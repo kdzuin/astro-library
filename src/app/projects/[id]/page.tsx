@@ -3,7 +3,6 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import {
     Card,
-    CardAction,
     CardContent,
     CardDescription,
     CardFooter,
@@ -36,20 +35,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                             <CardTitle>Sessions</CardTitle>
                             <CardDescription>
                                 During this project, you logged {sessions.length} sessions with the
-                                total exposure time of{' '}
-                                {(
-                                    sessions.reduce(
-                                        (acc, session) =>
-                                            acc +
-                                            session.filters.reduce(
-                                                (acc, filter) => acc + filter.exposureTime,
-                                                0
-                                            ),
-                                        0
-                                    ) / 3600
-                                ).toFixed(2)}
-                                {' '}hours. The filter balance in the project is 2:1:1. The most
-                                data is collected in H<sub>α</sub> filter.
+                                total exposure time of X{' '}hours. The filter balance in the
+                                project is 2:1:1. The most data is collected in H<sub>α</sub>{' '}
+                                filter.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>

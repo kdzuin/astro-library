@@ -42,7 +42,7 @@ export const equipmentSchema = z.object({
     purchaseDate: z.date().optional(),
     purchasePrice: z.number().optional(),
     notes: z.string().optional(),
-    tags: z.array(z.string()).default([]),
+    tags: z.array(z.string()).optional(),
 
     // Status
     status: z.enum(['active', 'retired', 'maintenance', 'sold']).default('active'),

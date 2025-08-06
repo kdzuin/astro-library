@@ -1,8 +1,21 @@
 'use server';
 
-import { Project, projectSchema } from '@/schemas/project';
 import { getDb } from '@/lib/server/firebase/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
+
+// Simple TypeScript interface for Project data
+export interface Project {
+    id: string;
+    userId: string;
+    name: string;
+    description?: string;
+    tags?: string[];
+    visibility: 'public' | 'private';
+    status: 'planning' | 'active' | 'processing' | 'completed';
+    totalExposureTime?: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 /**
  * Get all projects for a specific user, sorted by most recently updated
@@ -18,29 +31,15 @@ export async function getProjectsByUserId(userId: string): Promise<Project[]> {
             .orderBy('updatedAt', 'desc')
             .get();
 
-        const projects: Project[] = [];
-
-        for (const doc of projectDocs.docs) {
-            if (!doc.exists) continue;
-
-            const data = doc.data()!;
-            const projectData = {
+        return projectDocs.docs.map((doc) => {
+            const data = doc.data();
+            return {
                 id: doc.id,
                 ...data,
                 createdAt: data.createdAt?.toDate() || new Date(),
                 updatedAt: data.updatedAt?.toDate() || new Date(),
-            };
-
-            const result = projectSchema.safeParse(projectData);
-            if (!result.success) {
-                console.error('Invalid project data for doc', doc.id, ':', result.error);
-                continue;
-            }
-
-            projects.push(result.data);
-        }
-
-        return projects;
+            } as Project;
+        });
     } catch (error) {
         console.error('Error fetching user projects:', error);
         return [];
@@ -56,25 +55,17 @@ export async function getProjectById(projectId: string): Promise<Project | null>
         const projectRef = db.collection('projects').doc(projectId);
         const projectDoc = await projectRef.get();
 
-        if (projectDoc.exists) {
-            const data = projectDoc.data()!;
-            const projectData = {
-                id: projectDoc.id,
-                ...data,
-                createdAt: data.createdAt?.toDate() || new Date(),
-                updatedAt: data.updatedAt?.toDate() || new Date(),
-            };
-
-            const result = projectSchema.safeParse(projectData);
-            if (!result.success) {
-                console.error('Invalid project data for doc', projectDoc.id, ':', result.error);
-                return null;
-            }
-
-            return result.data;
-        } else {
+        if (!projectDoc.exists) {
             return null;
         }
+
+        const data = projectDoc.data()!;
+        return {
+            id: projectDoc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+        } as Project;
     } catch (error) {
         console.error('Error getting project:', error);
         throw error;
