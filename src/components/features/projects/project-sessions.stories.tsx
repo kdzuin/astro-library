@@ -18,8 +18,6 @@ export const Primary: StoryObj<ProjectSessionsProps> = {
                 projectId: 'story-project-id',
                 userId: 'story-user-id',
                 date: '2025-04-01',
-                filters: [],
-                equipmentIds: [],
                 tags: [],
             },
             {
@@ -27,8 +25,6 @@ export const Primary: StoryObj<ProjectSessionsProps> = {
                 projectId: 'story-project-id',
                 userId: 'story-user-id',
                 date: '2025-04-02',
-                filters: [],
-                equipmentIds: [],
                 tags: [],
             },
             {
@@ -36,8 +32,6 @@ export const Primary: StoryObj<ProjectSessionsProps> = {
                 projectId: 'story-project-id',
                 userId: 'story-user-id',
                 date: '2025-04-03',
-                filters: [],
-                equipmentIds: [],
                 tags: [],
             },
         ],

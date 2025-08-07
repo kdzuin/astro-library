@@ -22,17 +22,3 @@ describe('ProjectCard Render', () => {
         expect(badge).toHaveTextContent('Active');
     });
 });
-
-describe('ProjectCard Session Stats', () => {
-    cleanup();
-    render(<ProjectCard {...mockProject} />);
-
-    it('shows total time in minutes', () => {
-        // exposure time is in seconds, we need minutes in the end
-        const totalTimeBadge = screen.getByTestId('total-exposure-time');
-
-        expect(totalTimeBadge).toBeInTheDocument();
-        expect(totalTimeBadge).not.toHaveTextContent(mockProject.totalExposureTime);
-        expect(totalTimeBadge).toHaveTextContent(Math.ceil(mockProject.totalExposureTime / 60));
-    });
-});

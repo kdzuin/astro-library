@@ -25,9 +25,8 @@ export function ProjectCard({
     name,
     description,
     status,
-    catalogueDesignation,
     tags,
-    totalExposureTime,
+    totalExposureTime = 0,
 }: ProjectCardProps) {
     const totalExposureTimeInMinutes = Math.ceil(totalExposureTime / 60);
 
@@ -50,25 +49,13 @@ export function ProjectCard({
                         {mapStatusToLabel(status)}
                     </Badge>
 
-                    {catalogueDesignation ? (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Badge variant="outline">
-                                    <span className="sr-only">Catalogue Designation:</span>
-                                    {catalogueDesignation}
-                                </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>Catalogue Designation</TooltipContent>
-                        </Tooltip>
-                    ) : null}
-
-                    {tags.slice(0, 2).map((tag) => (
+                    {tags?.slice(0, 2).map((tag) => (
                         <Badge key={tag} variant="outline" className="text-xs">
                             {tag}
                         </Badge>
                     ))}
 
-                    {tags.length > 2 ? (
+                    {tags && tags.length > 2 ? (
                         <Badge variant="outline" className="text-xs">
                             +{tags.length - 2} more
                         </Badge>

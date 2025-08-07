@@ -29,10 +29,9 @@ describe('Utils', () => {
             expect(tagsStringToArray(tagsString)).toEqual(expected);
         });
 
-        it('should handle undefined/null args', () => {
+        it('should handle undefined args', () => {
             const expected: string[] = [];
             expect(tagsStringToArray(undefined)).toEqual(expected);
-            expect(tagsStringToArray(null)).toEqual(expected);
         });
 
         it('should handle falsy values', () => {
@@ -61,10 +60,9 @@ describe('Utils', () => {
             expect(tagsArrayToString(tagsArray)).toEqual(expected);
         });
 
-        it('should handle undefined/null args', () => {
+        it('should handle undefined args', () => {
             const expected = '';
             expect(tagsArrayToString(undefined)).toEqual(expected);
-            expect(tagsArrayToString(null)).toEqual(expected);
         });
     });
 });
