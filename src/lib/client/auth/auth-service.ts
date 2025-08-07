@@ -2,6 +2,7 @@
 
 import { signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { auth } from '../firebase/config';
+import { loginAction, logoutAction } from '@/lib/server/actions/auth';
 
 export class AuthService {
   static async signIn(email: string, password: string): Promise<void> {
@@ -11,16 +12,10 @@ export class AuthService {
       const idToken = await userCredential.user.getIdToken();
       
       // Create server session
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ idToken }),
-      });
+      const result = await loginAction(idToken);
       
-      if (!response.ok) {
-        throw new Error('Failed to create session');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create session');
       }
     } catch (error) {
       console.error('Sign in error:', error);
@@ -31,9 +26,7 @@ export class AuthService {
   static async signOut(): Promise<void> {
     try {
       // Clear server session
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-      });
+      await logoutAction();
       
       // Sign out from Firebase
       await firebaseSignOut(auth);
@@ -53,16 +46,10 @@ export class AuthService {
       try {
         const idToken = await user.getIdToken(true); // Force refresh
         
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ idToken }),
-        });
+        const result = await loginAction(idToken);
         
-        if (!response.ok) {
-          throw new Error('Failed to refresh session');
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to refresh session');
         }
       } catch (error) {
         console.error('Session refresh error:', error);

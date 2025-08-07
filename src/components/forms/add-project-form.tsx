@@ -25,6 +25,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, PlusIcon } from 'lucide-react';
 import { tagsStringToArray } from '@/lib/utils';
+import { createProjectAction } from '@/lib/server/actions/projects';
 
 const addProjectFormSchema = z.object({
     name: z
@@ -56,29 +57,17 @@ export default function AddProjectForm() {
         setError(null);
 
         try {
-            // Transform form data to match API schema
-            const projectData = {
-                name: data.name,
-                description: data.description || '',
-                visibility: data.visibility,
-                tags: tagsStringToArray(data.tags),
-                status: 'planning' as const,
-            };
+            const formData = new FormData();
+            formData.append('name', data.name);
+            formData.append('description', data.description || '');
+            formData.append('visibility', data.visibility);
+            formData.append('tags', JSON.stringify(tagsStringToArray(data.tags)));
 
-            const response = await fetch('/api/projects', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(projectData),
-            });
+            const result = await createProjectAction(formData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create project');
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to create project');
             }
-
-            await response.json();
 
             // Navigate back and refresh to show the new project
         } catch (error) {

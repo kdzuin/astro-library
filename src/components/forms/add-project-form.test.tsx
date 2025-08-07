@@ -3,14 +3,17 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import AddProjectForm from './add-project-form';
 import userEvent from '@testing-library/user-event';
+import { createProjectAction } from '@/lib/server/actions/projects';
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
     useRouter: vi.fn(),
 }));
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock server action
+vi.mock('@/lib/server/actions/projects', () => ({
+    createProjectAction: vi.fn(),
+}));
 
 // Mock window.location.replace
 const mockLocationReplace = vi.fn();
@@ -31,11 +34,12 @@ describe('AddProjectForm', () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any);
 
-        // Mock successful API response
-        vi.mocked(fetch).mockResolvedValue({
-            ok: true,
-            json: async () => ({ success: true, data: { id: 'test-project-id' } }),
-        } as Response);
+        // Mock successful server action response
+        vi.mocked(createProjectAction).mockResolvedValue({
+            success: true,
+            data: { id: 'test-project-id' },
+            message: 'Project created successfully',
+        });
     });
 
     afterEach(() => {
@@ -64,16 +68,10 @@ describe('AddProjectForm', () => {
             await user.type(projectNameInput, 'Test Project');
             await user.click(submitButton);
 
-            // Wait for the API call and navigation
+            // Wait for the server action call and navigation
             await waitFor(() => {
-                expect(fetch).toHaveBeenCalledWith(
-                    '/api/projects',
-                    expect.objectContaining({
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    })
+                expect(createProjectAction).toHaveBeenCalledWith(
+                    expect.any(FormData)
                 );
             });
 

@@ -1,0 +1,47 @@
+# Settings for Backend (on Cloud Run).
+# See https://firebase.google.com/docs/app-hosting/configure#cloud-run
+runConfig:
+  minInstances: 0
+  # maxInstances: 100
+  # concurrency: 80
+  # cpu: 1
+  # memoryMiB: 512
+
+# Environment variables and secrets.
+env:
+  # Firebase Configuration - All values stored in Secret Manager
+  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    secret: firebase-api-key
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    secret: firebase-auth-domain
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    secret: firebase-project-id
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    secret: firebase-storage-bucket
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    secret: firebase-messaging-sender-id
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    secret: firebase-app-id
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    secret: firebase-measurement-id
+  
+  # Firebase Admin Configuration
+  - variable: FIREBASE_PROJECT_ID
+    secret: firebase-project-id
+  - variable: FIREBASE_CLIENT_EMAIL
+    secret: firebase-client-email
+  - variable: FIREBASE_PRIVATE_KEY
+    secret: firebase-private-key
+  
+  # NextAuth Configuration
+  - variable: NEXTAUTH_URL
+    secret: nextauth-url
+  - variable: NEXTAUTH_SECRET
+    secret: nextauth-secret
+  
+  # Google OAuth Configuration
+  - variable: GOOGLE_CLIENT_ID
+    secret: google-client-id
+  - variable: GOOGLE_CLIENT_SECRET
+    secret: google-client-secret

@@ -20,6 +20,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn, tagsStringToArray } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { createSessionAction } from '@/lib/server/actions/sessions';
 
 const addSessionFormSchema = z.object({
     date: z.date('Please provide the date of the session'),
@@ -57,26 +58,18 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
         setError(null);
 
         try {
-            const sessionData = {
-                date: format(data.date, 'yyyy-MM-dd'),
-                location: data.location,
-                tags: tagsStringToArray(data.tags),
-            };
+            const formData = new FormData();
+            formData.append('date', format(data.date, 'yyyy-MM-dd'));
+            formData.append('location', data.location || '');
+            formData.append('tags', JSON.stringify(tagsStringToArray(data.tags)));
+            formData.append('filters', JSON.stringify([]));
+            formData.append('equipmentIds', JSON.stringify([]));
 
-            const response = await fetch(`/api/projects/${projectId}/sessions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(sessionData),
-            });
+            const result = await createSessionAction(projectId, formData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create session');
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to create session');
             }
-
-            await response.json();
         } catch (error) {
             setError(error instanceof Error ? error.message : 'An error occurred');
         } finally {

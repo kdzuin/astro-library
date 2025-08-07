@@ -1,6 +1,5 @@
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Project } from '@/schemas/project';
 import { ProjectCard } from '@/components/features/projects/project-card';

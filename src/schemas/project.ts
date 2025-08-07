@@ -13,7 +13,7 @@ export const projectSchema = z.object({
     tags: z.array(z.string()).optional(), // e.g. ["nebula", "emission", "summer"]
     visibility: z.enum(['public', 'private']).default('private'),
     status: z.enum(['planning', 'active', 'processing', 'completed']).default('planning'),
-    totalExposureTime: z.number().default(0),
+    totalExposureTime: z.number().optional(),
     createdAt: z.date(),
     updatedAt: z.date(),
 });

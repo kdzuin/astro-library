@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/client/firebase/config';
+import { loginAction } from '@/lib/server/actions/auth';
 
 export function useGoogleSignIn() {
     const [isLoading, setIsLoading] = useState(false);
@@ -22,17 +23,11 @@ export function useGoogleSignIn() {
             const userCredential = await signInWithPopup(auth, provider);
             const idToken = await userCredential.user.getIdToken();
 
-            // Create server session using our AuthService
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ idToken }),
-            });
+            // Create server session using our server action
+            const result = await loginAction(idToken);
 
-            if (!response.ok) {
-                throw new Error('Failed to create session');
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to create session');
             }
 
             return true; // Success - let consumer handle what to do next

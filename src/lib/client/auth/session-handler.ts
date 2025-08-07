@@ -1,5 +1,7 @@
 'use client';
 
+import { clearExpiredSessionAction } from '@/lib/server/actions/auth';
+
 /**
  * Client-side session management utilities
  * Handles expired sessions and cookie cleanup
@@ -11,18 +13,13 @@
  */
 export async function clearExpiredSession(): Promise<boolean> {
     try {
-        const response = await fetch('/api/auth/clear-expired', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+        const result = await clearExpiredSessionAction();
 
-        if (response.ok) {
+        if (result.success) {
             console.log('Expired session cleared successfully');
             return true;
         } else {
-            console.error('Failed to clear expired session');
+            console.error('Failed to clear expired session:', result.error);
             return false;
         }
     } catch (error) {
