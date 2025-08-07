@@ -1,4 +1,5 @@
 import { SignIn } from '@/components/features/auth/sign-in';
+export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
     return (

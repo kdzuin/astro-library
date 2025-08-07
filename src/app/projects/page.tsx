@@ -7,6 +7,8 @@ import { PageHeader } from '@/components/layout/page-header';
 import { requireAuth } from '@/lib/server/auth/utils';
 import { getProjectsByUserId } from '@/lib/server/transport/projects';
 
+export const dynamic = 'force-dynamic';
+
 // Server-side data fetching with caching
 async function fetchProjects(): Promise<Project[]> {
     try {

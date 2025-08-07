@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage({
     projects,

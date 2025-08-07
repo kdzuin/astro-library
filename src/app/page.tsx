@@ -1,4 +1,5 @@
 import { SignIn } from '@/components/features/auth/sign-in';
+export const dynamic = 'force-dynamic';
 
 /**
  * This file is required by Next.js for the root route ('/') to exist.
