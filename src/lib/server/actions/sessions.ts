@@ -14,15 +14,15 @@ export async function createSession(projectId: string, formData: FormData) {
         const validatedData = createSessionSchema.parse(data);
 
         const db = await getDb();
-        const docRef = await db
-            .collection('projects')
-            .doc(projectId)
-            .collection('sessions')
-            .add({
-                ...validatedData,
-                projectId,
-                userId,
-            });
+        const docRef = db.collection('projects').doc(projectId).collection('sessions').doc(); // Generate a new document reference with ID
+
+        // Store the document with the ID included as a field
+        await docRef.set({
+            ...validatedData,
+            id: docRef.id, // Include the document ID as a field
+            projectId,
+            userId,
+        });
 
         return {
             success: true,
@@ -68,24 +68,18 @@ export async function getSessionsByProjectId(projectId: string) {
     }
 }
 
-export async function getSessionsByUserId(userId: string, limit: number) {
+export async function getSessionsByUserId() {
     try {
+        const user = await requireAuth();
         const db = await getDb();
 
         const sessionsDocs = await db
             .collectionGroup('sessions')
-            .where('userId', '==', userId)
+            .where('userId', '==', user.id)
             .orderBy('date', 'desc')
-            .limit(limit)
             .get();
 
-        const sessions = sessionsDocs.docs.map((doc) => {
-            const data = doc.data();
-            return sessionSchema.parse({
-                ...data,
-                id: doc.id,
-            });
-        });
+        const sessions = sessionsDocs.docs.map((doc) => sessionSchema.parse(doc.data()));
 
         return {
             success: true,
@@ -94,5 +88,32 @@ export async function getSessionsByUserId(userId: string, limit: number) {
     } catch (error) {
         console.error('Error fetching sessions:', error);
         return { success: false, data: [], error: 'Internal server error' };
+    }
+}
+
+export async function getSessionById(sessionId: string) {
+    try {
+        const user = await requireAuth();
+        const db = await getDb();
+
+        const sessionsDocs = await db
+            .collectionGroup('sessions')
+            .where('userId', '==', user.id)
+            .where('id', '==', sessionId)
+            .get();
+
+        if (!sessionsDocs.docs.length) {
+            throw new Error('Session not found');
+        }
+
+        const session = sessionSchema.parse(sessionsDocs.docs[0].data());
+
+        return {
+            success: true,
+            data: session,
+        };
+    } catch (error) {
+        console.error('Error fetching session:', error);
+        return { success: false, data: null, error: 'Internal server error' };
     }
 }

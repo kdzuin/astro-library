@@ -1,12 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { getSessionsByUserId } from '@/lib/server/actions/sessions';
-import { requireAuth } from '@/lib/server/auth/utils';
 import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function SessionsSegment() {
-    const user = await requireAuth();
-    const sessionsFetch = await getSessionsByUserId(user.id, 20);
+    const sessionsFetch = await getSessionsByUserId();
     const sessions = sessionsFetch.data;
 
     return (
@@ -14,7 +12,7 @@ export default async function SessionsSegment() {
             {sessions.map((session) => (
                 <div key={session.id}>
                     <Button variant="outline" asChild size="sm">
-                        <Link href={`/projects/${session.projectId}/sessions/${session.id}`}>
+                        <Link href={`/sessions/${session.id}`}>
                             <Calendar />
                             {session.date}
                         </Link>

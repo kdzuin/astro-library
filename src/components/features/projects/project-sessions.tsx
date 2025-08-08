@@ -26,10 +26,7 @@ export function ProjectSessions({ sessions, projectId }: ProjectSessionsProps) {
                 {sessions.map((session, index) => (
                     <tr key={index} data-testid="session-row">
                         <th>
-                            <Link
-                                href={`/projects/${projectId}/sessions/${session.id}`}
-                                className="underline"
-                            >
+                            <Link href={`/sessions/${session.id}`} className="underline">
                                 {format(session.date, 'PPP')}
                             </Link>
                         </th>
