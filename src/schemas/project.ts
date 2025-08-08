@@ -17,6 +17,7 @@ export const createProjectSchema = projectSchema.omit({
     id: true,
     createdAt: true,
     updatedAt: true,
+    userId: true,
 });
 export const updateProjectSchema = projectSchema.omit({
     id: true,
