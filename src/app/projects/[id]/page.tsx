@@ -9,16 +9,19 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { getProjectById } from '@/lib/server/transport/projects';
-import { getSessionsByProjectId } from '@/lib/server/transport/sessions';
+import { getProjectById } from '@/lib/server/actions/projects';
+import { getSessionsByProjectId } from '@/lib/server/actions/sessions';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
     const projectId = (await params).id;
-    const project = await getProjectById(projectId);
-    const sessions = await getSessionsByProjectId(projectId);
+    const projectFetch = await getProjectById(projectId);
+    const project = projectFetch.data;
+
+    const sessionsFetch = await getSessionsByProjectId(projectId);
+    const sessions = sessionsFetch.data;
 
     if (!project) {
         return notFound();
@@ -34,8 +37,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                         <CardHeader>
                             <CardTitle>Sessions</CardTitle>
                             <CardDescription>
-                                During this project, you logged {sessions.length} sessions with the
-                                total exposure time of X{' '}hours. The filter balance in the
+                                During this project, you logged {sessions.length || 0} sessions with
+                                the total exposure time of X{' '}hours. The filter balance in the
                                 project is 2:1:1. The most data is collected in H<sub>α</sub>{' '}
                                 filter.
                             </CardDescription>

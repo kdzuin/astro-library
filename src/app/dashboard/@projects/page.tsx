@@ -1,12 +1,13 @@
 import { Button } from '@/components/ui/button';
+import { getProjectsByUserId } from '@/lib/server/actions/projects';
 import { requireAuth } from '@/lib/server/auth/utils';
-import { getProjectsByUserId } from '@/lib/server/transport/projects';
 import { Sparkle } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function ProjectsSegment() {
     const user = await requireAuth();
-    const projects = await getProjectsByUserId(user.id);
+    const projectsFetch = await getProjectsByUserId(user.id);
+    const projects = projectsFetch.data;
 
     return (
         <div className="flex gap-2 flex-wrap">

@@ -1,65 +1,98 @@
-'use server';
+import { createSessionSchema, sessionSchema } from '@/schemas/session';
+import { requireAuth } from '@/lib/server/auth/utils';
+import { getDb } from '@/lib/server/firebase/firestore';
 
-import { getProjectById } from '@/lib/server/transport/projects';
-import { addSession } from '@/lib/server/transport/sessions';
-import { createSessionDataSchema } from '@/schemas/session';
-import { getCurrentUser } from '@/lib/server/auth/utils';
-
-/**
- * Server action to create a new session for a project
- * Replaces POST /api/projects/[id]/sessions
- */
-export async function createSessionAction(projectId: string, formData: FormData) {
+export async function createSession(projectId: string, formData: FormData) {
     try {
-        const user = await getCurrentUser();
-        if (!user) {
-            return { success: false, error: 'Unauthorized' };
-        }
-
-        if (!projectId || typeof projectId !== 'string') {
-            return { success: false, error: 'Project ID is required' };
-        }
-
-        // Check if the projectId belongs to the current user
-        const project = await getProjectById(projectId);
-
-        if (!project) {
-            return { success: false, error: 'Project not found' };
-        }
-
-        if (project.userId !== user.id) {
-            return { success: false, error: 'You are not authorized to access this project' };
-        }
+        const user = await requireAuth();
+        const userId = user.id;
 
         const data = {
             date: formData.get('date') as string,
-            location: formData.get('location') as string,
-            tags: JSON.parse(formData.get('tags') as string || '[]'),
-            filters: JSON.parse(formData.get('filters') as string || '[]'),
-            equipmentIds: JSON.parse(formData.get('equipmentIds') as string || '[]'),
         };
 
-        const validatedData = createSessionDataSchema.parse(data);
-        const sessionId = await addSession(projectId, user.id, validatedData);
+        const validatedData = createSessionSchema.parse(data);
+
+        const db = await getDb();
+        const docRef = await db
+            .collection('projects')
+            .doc(projectId)
+            .collection('sessions')
+            .add({
+                ...validatedData,
+                projectId,
+                userId,
+            });
 
         return {
             success: true,
-            data: { id: sessionId },
-            message: 'Session created successfully',
+            data: { id: docRef.id },
         };
     } catch (error) {
-        console.error('Error creating session:', error);
-
-        if (error instanceof Error && error.name === 'ZodError') {
-            return {
-                success: false,
-                error: 'Invalid session data',
-            };
-        }
-
         return {
             success: false,
-            error: 'Failed to create session',
+            error: error instanceof Error ? error.message : 'An error occurred',
         };
+    }
+}
+
+export function updateSession() {}
+
+export function deleteSession() {}
+
+export async function getSessionsByProjectId(projectId: string) {
+    try {
+        const db = await getDb();
+        const sessionsDocs = await db
+            .collection('projects')
+            .doc(projectId)
+            .collection('sessions')
+            .orderBy('date', 'desc')
+            .get();
+
+        const sessions = sessionsDocs.docs.map((doc) => {
+            const data = doc.data();
+            return sessionSchema.parse({
+                ...data,
+                id: doc.id,
+            });
+        });
+
+        return {
+            success: true,
+            data: sessions,
+        };
+    } catch (error) {
+        console.error('Error fetching sessions:', error);
+        return { success: false, data: [], error: 'Internal server error' };
+    }
+}
+
+export async function getSessionsByUserId(userId: string, limit: number) {
+    try {
+        const db = await getDb();
+
+        const sessionsDocs = await db
+            .collectionGroup('sessions')
+            .where('userId', '==', userId)
+            .orderBy('date', 'desc')
+            .limit(limit)
+            .get();
+
+        const sessions = sessionsDocs.docs.map((doc) => {
+            const data = doc.data();
+            return sessionSchema.parse({
+                ...data,
+                id: doc.id,
+            });
+        });
+
+        return {
+            success: true,
+            data: sessions,
+        };
+    } catch (error) {
+        console.error('Error fetching sessions:', error);
+        return { success: false, data: [], error: 'Internal server error' };
     }
 }

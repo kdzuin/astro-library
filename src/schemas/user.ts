@@ -9,7 +9,6 @@ export const userSchema = z.object({
     updatedAt: z.date(),
 });
 
-// Create user schema (for initial creation)
 export const createUserSchema = z.object({
     id: z.string(),
     email: z.string().email(),
@@ -17,7 +16,6 @@ export const createUserSchema = z.object({
     photoURL: z.url().optional(),
 });
 
-// Update user schema (for updates)
 export const updateUserSchema = z
     .object({
         displayName: z.string().optional(),
@@ -25,7 +23,6 @@ export const updateUserSchema = z
     })
     .partial();
 
-// Type exports
 export type User = z.infer<typeof userSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;

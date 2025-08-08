@@ -22,13 +22,7 @@ export const metadata: Metadata = {
     description: 'A library management system for astronomers',
 };
 
-export default async function RootLayout({
-    children,
-    modal,
-}: {
-    children: React.ReactNode;
-    modal: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -36,10 +30,7 @@ export default async function RootLayout({
                     <SidebarProvider defaultOpen={true}>
                         <div className="flex min-h-screen w-full">
                             <AppSidebar />
-                            <main className="flex-1 w-full px-6 py-4 pe-15">
-                                {children}
-                                {modal}
-                            </main>
+                            <main className="flex-1 w-full px-6 py-4 pe-15">{children}</main>
                         </div>
                         <Toaster />
                     </SidebarProvider>

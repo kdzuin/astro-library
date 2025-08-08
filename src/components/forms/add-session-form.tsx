@@ -18,24 +18,11 @@ import { CalendarIcon, Loader2, PlusIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn, tagsStringToArray } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { createSessionAction } from '@/lib/server/actions/sessions';
+import { cn } from '@/lib/utils';
+import { createSession } from '@/lib/server/actions/sessions';
 
 const addSessionFormSchema = z.object({
     date: z.date('Please provide the date of the session'),
-    location: z.string().optional(),
-    filters: z
-        .array(z.object({ name: z.string(), exposureTime: z.number(), frameCount: z.number() }))
-        .optional(),
-    equipmentIds: z.array(z.string()).optional(),
-    seeing: z.number().optional(),
-    transparency: z.number().optional(),
-    temperature: z.number().optional(),
-    humidity: z.number().optional(),
-    notes: z.string().optional(),
-    issues: z.string().optional(),
-    tags: z.string().optional(),
 });
 
 export type AddSessionFormSchema = z.infer<typeof addSessionFormSchema>;
@@ -49,7 +36,6 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
         resolver: zodResolver(addSessionFormSchema),
         defaultValues: {
             date: new Date(),
-            tags: '',
         },
     });
 
@@ -60,12 +46,8 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
         try {
             const formData = new FormData();
             formData.append('date', format(data.date, 'yyyy-MM-dd'));
-            formData.append('location', data.location || '');
-            formData.append('tags', JSON.stringify(tagsStringToArray(data.tags)));
-            formData.append('filters', JSON.stringify([]));
-            formData.append('equipmentIds', JSON.stringify([]));
 
-            const result = await createSessionAction(projectId, formData);
+            const result = await createSession(projectId, formData);
 
             if (!result.success) {
                 throw new Error(result.error || 'Failed to create session');
@@ -133,44 +115,6 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
                                         />
                                     </PopoverContent>
                                 </Popover>
-                            </FormControl>
-                            <FormMessage data-testid="error-message" />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="location"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Location (Optional)</FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="e.g. backyard, observatory"
-                                    disabled={isLoading}
-                                    data-testid="session-location-input"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage data-testid="error-message" />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="tags"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Tags (Optional)</FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="e.g. nebula, emission, summer, widefield (comma-separated)"
-                                    disabled={isLoading}
-                                    data-testid="session-tags-input"
-                                    {...field}
-                                />
                             </FormControl>
                             <FormMessage data-testid="error-message" />
                         </FormItem>

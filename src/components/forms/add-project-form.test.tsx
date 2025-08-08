@@ -3,7 +3,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import AddProjectForm from './add-project-form';
 import userEvent from '@testing-library/user-event';
-import { createProjectAction } from '@/lib/server/actions/projects';
+import { createProject } from '@/lib/server/actions/projects';
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({
 
 // Mock server action
 vi.mock('@/lib/server/actions/projects', () => ({
-    createProjectAction: vi.fn(),
+    createProject: vi.fn(),
 }));
 
 // Mock window.location.replace
@@ -35,7 +35,7 @@ describe('AddProjectForm', () => {
         } as any);
 
         // Mock successful server action response
-        vi.mocked(createProjectAction).mockResolvedValue({
+        vi.mocked(createProject).mockResolvedValue({
             success: true,
             data: { id: 'test-project-id' },
             message: 'Project created successfully',
@@ -70,9 +70,7 @@ describe('AddProjectForm', () => {
 
             // Wait for the server action call and navigation
             await waitFor(() => {
-                expect(createProjectAction).toHaveBeenCalledWith(
-                    expect.any(FormData)
-                );
+                expect(createProject).toHaveBeenCalledWith(expect.any(FormData));
             });
 
             // Wait for navigation to occur

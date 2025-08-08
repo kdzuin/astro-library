@@ -1,16 +1,11 @@
 import { z } from 'zod';
 
-/**
- * Zod schema for astronomical imaging Project
- *
- * Projects are main entities (e.g. NGC7000) that users work on.
- */
 export const projectSchema = z.object({
     id: z.string(),
     userId: z.string(),
-    name: z.string(), // e.g. "NGC 7000 - North America Nebula"
+    name: z.string(),
     description: z.string().optional(),
-    tags: z.array(z.string()).optional(), // e.g. ["nebula", "emission", "summer"]
+    tags: z.array(z.string()).optional(),
     visibility: z.enum(['public', 'private']).default('private'),
     status: z.enum(['planning', 'active', 'processing', 'completed']).default('planning'),
     totalExposureTime: z.number().optional(),
@@ -18,13 +13,19 @@ export const projectSchema = z.object({
     updatedAt: z.date(),
 });
 
-// Schema for creating a new project (excludes server-generated fields)
 export const createProjectSchema = projectSchema.omit({
     id: true,
     createdAt: true,
     updatedAt: true,
 });
+export const updateProjectSchema = projectSchema.omit({
+    id: true,
+    userId: true,
+    totalExposureTime: true,
+    createdAt: true,
+    updatedAt: true,
+});
 
-// For cases where you need the exact output type from the schema
 export type Project = z.infer<typeof projectSchema>;
 export type CreateProject = z.infer<typeof createProjectSchema>;
+export type UpdateProject = z.infer<typeof updateProjectSchema>;

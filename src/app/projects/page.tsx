@@ -1,32 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
-import { Project } from '@/schemas/project';
 import { ProjectCard } from '@/components/features/projects/project-card';
 import { PageHeader } from '@/components/layout/page-header';
 import { requireAuth } from '@/lib/server/auth/utils';
-import { getProjectsByUserId } from '@/lib/server/transport/projects';
+import { getProjectsByUserId } from '@/lib/server/actions/projects';
 
 export const dynamic = 'force-dynamic';
 
-// Server-side data fetching with caching
-async function fetchProjects(): Promise<Project[]> {
-    try {
-        const user = await requireAuth();
-
-        // Direct database access is more efficient for server components
-        const projects = await getProjectsByUserId(user.id);
-        return projects;
-    } catch (error) {
-        console.error('Failed to fetch projects:', error);
-        // Return empty array instead of throwing to prevent error boundary
-        return [];
-    }
-}
-
 // Server Component - runs on the server
 export default async function ProjectsPage() {
-    const projects = await fetchProjects();
+    const user = await requireAuth();
+    const projectsFetch = await getProjectsByUserId(user.id);
+
+    const projects = projectsFetch.data || [];
 
     return (
         <main className="space-y-6">

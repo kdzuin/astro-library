@@ -1,12 +1,13 @@
 import { Button } from '@/components/ui/button';
+import { getSessionsByUserId } from '@/lib/server/actions/sessions';
 import { requireAuth } from '@/lib/server/auth/utils';
-import { getSessionsByUserId } from '@/lib/server/transport/sessions';
 import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function SessionsSegment() {
     const user = await requireAuth();
-    const sessions = await getSessionsByUserId(user.id, 20);
+    const sessionsFetch = await getSessionsByUserId(user.id, 20);
+    const sessions = sessionsFetch.data;
 
     return (
         <div className="flex gap-2 flex-wrap">

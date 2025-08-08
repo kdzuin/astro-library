@@ -25,7 +25,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, PlusIcon } from 'lucide-react';
 import { tagsStringToArray } from '@/lib/utils';
-import { createProjectAction } from '@/lib/server/actions/projects';
+import { createProject } from '@/lib/server/actions/projects';
 
 const addProjectFormSchema = z.object({
     name: z
@@ -63,7 +63,7 @@ export default function AddProjectForm() {
             formData.append('visibility', data.visibility);
             formData.append('tags', JSON.stringify(tagsStringToArray(data.tags)));
 
-            const result = await createProjectAction(formData);
+            const result = await createProject(formData);
 
             if (!result.success) {
                 throw new Error(result.error || 'Failed to create project');
