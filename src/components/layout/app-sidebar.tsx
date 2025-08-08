@@ -16,8 +16,8 @@ import { FolderKanban, LayoutDashboard, LucideSparkle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { NavUser } from '@/components/layout/nav-user';
 import { AuthService } from '@/lib/client/auth/auth-service';
-import { User } from '@/schemas/user';
 import Link from 'next/link';
+import { useAuth } from '@/lib/client/auth/auth-context';
 
 // Menu items
 const items = [
@@ -33,12 +33,9 @@ const items = [
     },
 ];
 
-interface AppSidebarProps {
-    user: User;
-}
-
-export function AppSidebar({ user }: AppSidebarProps) {
+export function AppSidebar() {
     const currentPathname = usePathname();
+    const { user } = useAuth();
 
     const handleSignOut = async () => {
         try {
@@ -49,6 +46,10 @@ export function AppSidebar({ user }: AppSidebarProps) {
             console.error('Error signing out:', error);
         }
     };
+
+    if (!user) {
+        return null;
+    }
 
     return (
         <>

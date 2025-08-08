@@ -2,6 +2,8 @@
 
 import { getDb } from '@/lib/server/firebase/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
+import { unstable_cache } from 'next/cache';
+import { invalidateProjectsCache } from '@/lib/server/cache/utils';
 
 // Simple TypeScript interface for Project data
 export interface Project {
@@ -18,58 +20,80 @@ export interface Project {
 }
 
 /**
- * Get all projects for a specific user, sorted by most recently updated
+ * Get all projects for a specific user, sorted by most recently updated (cached)
  */
+const getCachedProjectsByUserId = unstable_cache(
+    async (userId: string): Promise<Project[]> => {
+        try {
+            const db = await getDb();
+
+            // Query projects where userId matches
+            const projectDocs = await db
+                .collection('projects')
+                .where('userId', '==', userId)
+                .orderBy('updatedAt', 'desc')
+                .get();
+
+            return projectDocs.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: data.createdAt?.toDate() || new Date(),
+                    updatedAt: data.updatedAt?.toDate() || new Date(),
+                } as Project;
+            });
+        } catch (error) {
+            console.error('Error fetching user projects:', error);
+            return [];
+        }
+    },
+    ['projects-by-user'],
+    {
+        tags: ['projects'],
+        revalidate: 300, // Cache for 5 minutes
+    }
+);
+
 export async function getProjectsByUserId(userId: string): Promise<Project[]> {
-    try {
-        const db = await getDb();
+    return getCachedProjectsByUserId(userId);
+}
 
-        // Query projects where userId matches
-        const projectDocs = await db
-            .collection('projects')
-            .where('userId', '==', userId)
-            .orderBy('updatedAt', 'desc')
-            .get();
+/**
+ * Get a project by its ID (cached)
+ */
+const getCachedProjectById = unstable_cache(
+    async (projectId: string): Promise<Project | null> => {
+        try {
+            const db = await getDb();
+            const projectRef = db.collection('projects').doc(projectId);
+            const projectDoc = await projectRef.get();
 
-        return projectDocs.docs.map((doc) => {
-            const data = doc.data();
+            if (!projectDoc.exists) {
+                return null;
+            }
+
+            const data = projectDoc.data()!;
             return {
-                id: doc.id,
+                id: projectDoc.id,
                 ...data,
                 createdAt: data.createdAt?.toDate() || new Date(),
                 updatedAt: data.updatedAt?.toDate() || new Date(),
             } as Project;
-        });
-    } catch (error) {
-        console.error('Error fetching user projects:', error);
-        return [];
-    }
-}
-
-/**
- * Get a project by its ID
- */
-export async function getProjectById(projectId: string): Promise<Project | null> {
-    try {
-        const db = await getDb();
-        const projectRef = db.collection('projects').doc(projectId);
-        const projectDoc = await projectRef.get();
-
-        if (!projectDoc.exists) {
-            return null;
+        } catch (error) {
+            console.error('Error getting project:', error);
+            throw error;
         }
-
-        const data = projectDoc.data()!;
-        return {
-            id: projectDoc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            updatedAt: data.updatedAt?.toDate() || new Date(),
-        } as Project;
-    } catch (error) {
-        console.error('Error getting project:', error);
-        throw error;
+    },
+    ['project-by-id'],
+    {
+        tags: ['projects'],
+        revalidate: 600, // Cache for 10 minutes
     }
+);
+
+export async function getProjectById(projectId: string): Promise<Project | null> {
+    return getCachedProjectById(projectId);
 }
 
 /**
@@ -88,6 +112,9 @@ export async function createProject(
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
         });
+
+        // Invalidate projects cache after creation
+        await invalidateProjectsCache();
 
         return docRef.id;
     } catch (error) {
@@ -111,6 +138,9 @@ export async function updateProject(
             ...updates,
             updatedAt: FieldValue.serverTimestamp(),
         });
+
+        // Invalidate projects cache after update
+        await invalidateProjectsCache();
     } catch (error) {
         console.error('Error updating project:', error);
         throw error;
@@ -125,6 +155,9 @@ export async function deleteProject(projectId: string): Promise<void> {
         const db = await getDb();
         const docRef = db.collection('projects').doc(projectId);
         await docRef.delete();
+
+        // Invalidate projects cache after deletion
+        await invalidateProjectsCache();
     } catch (error) {
         console.error('Error deleting project:', error);
         throw error;

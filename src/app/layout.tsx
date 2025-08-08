@@ -3,10 +3,9 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/app-sidebar';
-import { getCurrentUser } from '@/lib/server/auth/utils';
+import { AuthProvider } from '@/lib/client/auth/auth-context';
 
 import './globals.css';
-import { TooltipProvider } from '@/components/ui/tooltip';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -30,33 +29,21 @@ export default async function RootLayout({
     children: React.ReactNode;
     modal: React.ReactNode;
 }) {
-    const user = await getCurrentUser();
-
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                {user ? (
-                    // Authenticated layout with sidebar
-                    <TooltipProvider>
-                        <SidebarProvider defaultOpen={true}>
-                            <div className="flex min-h-screen w-full">
-                                <AppSidebar user={user} />
-                                <main className="flex-1 w-full px-6 py-4 pe-15">
-                                    {children}
-                                    {modal}
-                                </main>
-                            </div>
-                            <Toaster />
-                        </SidebarProvider>
-                    </TooltipProvider>
-                ) : (
-                    // Unauthenticated layout (simple)
-                    <TooltipProvider>
-                        {children}
-                        {modal}
+                <AuthProvider>
+                    <SidebarProvider defaultOpen={true}>
+                        <div className="flex min-h-screen w-full">
+                            <AppSidebar />
+                            <main className="flex-1 w-full px-6 py-4 pe-15">
+                                {children}
+                                {modal}
+                            </main>
+                        </div>
                         <Toaster />
-                    </TooltipProvider>
-                )}
+                    </SidebarProvider>
+                </AuthProvider>
             </body>
         </html>
     );

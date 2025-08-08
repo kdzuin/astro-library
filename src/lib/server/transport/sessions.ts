@@ -2,6 +2,8 @@
 
 import { getDb } from '@/lib/server/firebase/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
+import { unstable_cache } from 'next/cache';
+import { invalidateSessionsCache } from '@/lib/server/cache/utils';
 
 export interface SessionData {
     id: string;
@@ -31,34 +33,45 @@ export interface AcquisitionDetailsData {
 }
 
 /**
- * Get all sessions for a specific project
+ * Get all sessions for a specific project (cached)
  *
  * @param projectId
  */
-export async function getSessionsByProjectId(projectId: string): Promise<SessionData[]> {
-    try {
-        const db = await getDb();
-        const sessionsRef = db
-            .collection('projects')
-            .doc(projectId)
-            .collection('sessions')
-            .orderBy('date', 'desc');
-        const sessionsSnapshot = await sessionsRef.get();
+const getCachedSessionsByProjectId = unstable_cache(
+    async (projectId: string): Promise<SessionData[]> => {
+        try {
+            const db = await getDb();
+            const sessionsRef = db
+                .collection('projects')
+                .doc(projectId)
+                .collection('sessions')
+                .orderBy('date', 'desc');
+            const sessionsSnapshot = await sessionsRef.get();
 
-        return sessionsSnapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                projectId,
-                ...data,
-                createdAt: data.createdAt?.toDate(),
-                updatedAt: data.updatedAt?.toDate(),
-            } as SessionData;
-        });
-    } catch (error) {
-        console.error('Error fetching project sessions:', error);
-        return [];
+            return sessionsSnapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    projectId,
+                    ...data,
+                    createdAt: data.createdAt?.toDate(),
+                    updatedAt: data.updatedAt?.toDate(),
+                } as SessionData;
+            });
+        } catch (error) {
+            console.error('Error fetching project sessions:', error);
+            return [];
+        }
+    },
+    ['sessions-by-project'],
+    {
+        tags: ['sessions'],
+        revalidate: 180, // Cache for 3 minutes
     }
+);
+
+export async function getSessionsByProjectId(projectId: string): Promise<SessionData[]> {
+    return getCachedSessionsByProjectId(projectId);
 }
 
 /**
@@ -119,6 +132,10 @@ export async function addSession(
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
         });
+
+        // Invalidate sessions cache after creation
+        await invalidateSessionsCache();
+
         return docRef.id;
     } catch (error) {
         console.error('Error adding project session:', error);
@@ -188,61 +205,75 @@ export async function getAcquisitionDetailsBySessionId(
 }
 
 /**
- * Get a single session by ID with its acquisition details
+ * Get a single session by ID with its acquisition details (cached)
  */
+const getCachedSessionById = unstable_cache(
+    async (
+        projectId: string,
+        sessionId: string
+    ): Promise<(SessionData & { acquisitionDetails: AcquisitionDetailsData[] }) | null> => {
+        try {
+            const db = await getDb();
+
+            // Get session document
+            const sessionDoc = await db
+                .collection('projects')
+                .doc(projectId)
+                .collection('sessions')
+                .doc(sessionId)
+                .get();
+
+            if (!sessionDoc.exists) {
+                return null;
+            }
+
+            const sessionData = sessionDoc.data();
+
+            // Get acquisition details for this session
+            const acquisitionDetailsRef = db
+                .collection('projects')
+                .doc(projectId)
+                .collection('sessions')
+                .doc(sessionId)
+                .collection('acquisitionDetails')
+                .orderBy('createdAt', 'asc');
+
+            const acquisitionSnapshot = await acquisitionDetailsRef.get();
+
+            const acquisitionDetails = acquisitionSnapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: data.createdAt?.toDate(),
+                    updatedAt: data.updatedAt?.toDate(),
+                } as AcquisitionDetailsData;
+            });
+
+            return {
+                id: sessionDoc.id,
+                ...sessionData,
+                createdAt: sessionData?.createdAt?.toDate(),
+                updatedAt: sessionData?.updatedAt?.toDate(),
+                acquisitionDetails,
+            } as SessionData & { acquisitionDetails: AcquisitionDetailsData[] };
+        } catch (error) {
+            console.error('Error fetching session:', error);
+            return null;
+        }
+    },
+    ['session-by-id'],
+    {
+        tags: ['sessions'],
+        revalidate: 300, // Cache for 5 minutes
+    }
+);
+
 export async function getSessionById(
     projectId: string,
     sessionId: string
 ): Promise<(SessionData & { acquisitionDetails: AcquisitionDetailsData[] }) | null> {
-    try {
-        const db = await getDb();
-
-        // Get session document
-        const sessionDoc = await db
-            .collection('projects')
-            .doc(projectId)
-            .collection('sessions')
-            .doc(sessionId)
-            .get();
-
-        if (!sessionDoc.exists) {
-            return null;
-        }
-
-        const sessionData = sessionDoc.data();
-
-        // Get acquisition details for this session
-        const acquisitionDetailsRef = db
-            .collection('projects')
-            .doc(projectId)
-            .collection('sessions')
-            .doc(sessionId)
-            .collection('acquisitionDetails')
-            .orderBy('createdAt', 'asc');
-
-        const acquisitionSnapshot = await acquisitionDetailsRef.get();
-
-        const acquisitionDetails = acquisitionSnapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                ...data,
-                createdAt: data.createdAt?.toDate(),
-                updatedAt: data.updatedAt?.toDate(),
-            } as AcquisitionDetailsData;
-        });
-
-        return {
-            id: sessionDoc.id,
-            ...sessionData,
-            createdAt: sessionData?.createdAt?.toDate(),
-            updatedAt: sessionData?.updatedAt?.toDate(),
-            acquisitionDetails,
-        } as SessionData & { acquisitionDetails: AcquisitionDetailsData[] };
-    } catch (error) {
-        console.error('Error fetching session:', error);
-        return null;
-    }
+    return getCachedSessionById(projectId, sessionId);
 }
 
 /**
@@ -305,6 +336,9 @@ export async function updateSessionWithAcquisitionDetails(
         });
 
         await batch.commit();
+
+        // Invalidate sessions cache after update
+        await invalidateSessionsCache();
     } catch (error) {
         console.error('Error updating session with acquisition details:', error);
         throw error;
