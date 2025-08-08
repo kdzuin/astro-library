@@ -3,18 +3,18 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // User-specific data
     match /users/{userId} {
-      allow read, write, delete: 
+      allow read, write: 
         if request.auth != null && request.auth.uid == userId;
     }
 
     // Projects - users can only access their own projects
     match /projects/{projectId} {
-      allow read, write, delete: 
+      allow read, write: 
         if request.auth != null && request.auth.uid == resource.data.userId;
       
       // Sessions within projects
       match /sessions/{sessionId} {
-        allow read, write, delete: 
+        allow read, write: 
           if request.auth != null && request.auth.uid == resource.data.userId;
       }
     }
