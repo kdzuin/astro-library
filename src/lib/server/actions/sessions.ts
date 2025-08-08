@@ -1,3 +1,5 @@
+'use server';
+
 import { createSessionSchema, sessionSchema } from '@/schemas/session';
 import { requireAuth } from '@/lib/server/auth/utils';
 import { getDb } from '@/lib/server/firebase/firestore';
@@ -36,9 +38,9 @@ export async function createSession(projectId: string, formData: FormData) {
     }
 }
 
-export function updateSession() {}
+export async function updateSession() {}
 
-export function deleteSession() {}
+export async function deleteSession() {}
 
 export async function getSessionsByProjectId(projectId: string) {
     try {

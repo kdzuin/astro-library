@@ -48,7 +48,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                         </CardContent>
                         <CardFooter className="border-t">
                             <Button asChild size="sm" variant="positive">
-                                <Link href={`/projects/${project.id}/add-session`}>
+                                <Link href={`/sessions/add?projectId=${projectId}`}>
                                     <Plus />
                                     Add Session
                                 </Link>

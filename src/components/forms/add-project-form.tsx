@@ -1,5 +1,11 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,9 +16,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
     Form,
     FormControl,
@@ -21,9 +24,8 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Loader2, PlusIcon } from 'lucide-react';
+
 import { tagsStringToArray } from '@/lib/utils';
 import { createProject } from '@/lib/server/actions/projects';
 
@@ -67,14 +69,13 @@ export default function AddProjectForm() {
 
             if (!result.success) {
                 throw new Error(result.error || 'Failed to create project');
+            } else {
+                window.location.replace('/projects');
             }
-
-            // Navigate back and refresh to show the new project
         } catch (error) {
             setError(error instanceof Error ? error.message : 'An error occurred');
         } finally {
             setIsLoading(false);
-            window.location.replace('/projects');
         }
     };
 

@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/layout/page-header';
 import { getSessionById } from '@/lib/server/actions/sessions';
 import { notFound } from 'next/navigation';
 
@@ -10,5 +11,9 @@ export default async function SessionPage({ params }: { params: Promise<{ sessio
         return notFound();
     }
 
-    return <div>Session {sessionId}</div>;
+    return (
+        <main className="space-y-6">
+            <PageHeader hasBackButton title={session.date} />
+        </main>
+    );
 }

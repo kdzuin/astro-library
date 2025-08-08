@@ -1,9 +1,14 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
     Form,
     FormControl,
@@ -12,11 +17,8 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { CalendarIcon, Loader2, PlusIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { createSession } from '@/lib/server/actions/sessions';
@@ -51,12 +53,13 @@ export default function AddSessionForm({ projectId }: { projectId: string }) {
 
             if (!result.success) {
                 throw new Error(result.error || 'Failed to create session');
+            } else {
+                window.location.replace(`/projects/${projectId}`);
             }
         } catch (error) {
             setError(error instanceof Error ? error.message : 'An error occurred');
         } finally {
             setIsLoading(false);
-            window.location.replace(`/projects/${projectId}`);
         }
     };
 

@@ -12,6 +12,8 @@ export const sessionSchema = z.object({
 // Schema for creating a new session (excludes server-generated fields)
 export const createSessionSchema = sessionSchema.omit({
     id: true,
+    userId: true,
+    projectId: true,
 });
 
 export const updateSessionSchema = sessionSchema.omit({
