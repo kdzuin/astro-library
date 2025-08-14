@@ -1,5 +1,8 @@
 import { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { mocked } from 'storybook/test';
+
 import AddSessionForm from './add-session-form';
+import { createSession } from '@/lib/server/actions/sessions';
 
 export default {
     title: 'Forms/AddSessionForm',
@@ -8,6 +11,9 @@ export default {
 
 export const Primary: StoryObj<typeof AddSessionForm> = {
     args: {
-        projectId: '1',
+        projectId: 'project-1',
+    },
+    beforeEach: async () => {
+        mocked(createSession);
     },
 };

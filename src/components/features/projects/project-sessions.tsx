@@ -7,7 +7,7 @@ export interface ProjectSessionsProps {
     projectId: string;
 }
 
-export function ProjectSessions({ sessions, projectId }: ProjectSessionsProps) {
+export function ProjectSessions({ sessions }: ProjectSessionsProps) {
     return (
         <table className="decorated-table w-full">
             <colgroup>

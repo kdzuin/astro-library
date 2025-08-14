@@ -7,7 +7,10 @@ import '../src/app/globals.css';
 // Import our theme decorator
 import { withTheme } from './preview-decorator';
 
-sb.mock(import('../src/components/features/auth/useGoogleSignIn'), { spy: true });
+sb.mock(import('../src/components/features/auth/useGoogleSignIn.ts'), { spy: false });
+sb.mock(import('../src/lib/server/actions/sessions.ts'), { spy: false });
+// sb.mock(import('../src/lib/server/actions/projects.ts'), { spy: false });
+// sb.mock(import('../src/lib/server/actions/auth.ts'), { spy: false });
 
 const preview: Preview = {
     decorators: [withTheme],
