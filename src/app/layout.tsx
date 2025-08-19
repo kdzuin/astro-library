@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { AuthProvider } from '@/lib/client/auth/auth-context';
 
@@ -30,7 +30,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <SidebarProvider defaultOpen={true}>
                         <div className="flex min-h-screen w-full">
                             <AppSidebar />
-                            <main className="flex-1 w-full px-6 py-4 pe-15">{children}</main>
+                            <SidebarInset>
+                                <main className="flex-1 w-full px-6 py-4 pe-15">{children}</main>
+                            </SidebarInset>
                         </div>
                         <Toaster />
                     </SidebarProvider>

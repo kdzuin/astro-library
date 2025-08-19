@@ -1,6 +1,7 @@
 'use server';
 
 import { createSessionSchema, sessionSchema } from '@/schemas/session';
+import { createAcquisitionDetailsSchema } from '@/schemas/acquisition-details';
 import { requireAuth } from '@/lib/server/auth/utils';
 import { getDb } from '@/lib/server/firebase/firestore';
 
@@ -15,16 +16,50 @@ export async function createSession(projectId: string, formData: FormData) {
 
         const validatedData = createSessionSchema.parse(data);
 
+        // Parse acquisition details if provided
+        const acquisitionDetailsRaw = formData.get('acquisitionDetails') as string;
+        let acquisitionDetails: ReturnType<typeof createAcquisitionDetailsSchema.parse>[] = [];
+        
+        if (acquisitionDetailsRaw) {
+            try {
+                const rawDetails = JSON.parse(acquisitionDetailsRaw);
+                // Validate each acquisition detail
+                acquisitionDetails = rawDetails.map((detail: unknown) => 
+                    createAcquisitionDetailsSchema.parse(detail)
+                );
+            } catch {
+                throw new Error('Invalid acquisition details format');
+            }
+        }
+
         const db = await getDb();
         const docRef = db.collection('projects').doc(projectId).collection('sessions').doc(); // Generate a new document reference with ID
 
-        // Store the document with the ID included as a field
+        // Store the session document
         await docRef.set({
             ...validatedData,
             id: docRef.id, // Include the document ID as a field
             projectId,
             userId,
         });
+
+        // Store acquisition details as subcollection if any
+        if (acquisitionDetails.length > 0) {
+            const batch = db.batch();
+            
+            acquisitionDetails.forEach((detail) => {
+                const acquisitionRef = docRef.collection('acquisitionDetails').doc();
+                batch.set(acquisitionRef, {
+                    ...detail,
+                    id: acquisitionRef.id,
+                    sessionId: docRef.id,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                });
+            });
+            
+            await batch.commit();
+        }
 
         return {
             success: true,
