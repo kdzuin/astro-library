@@ -1,35 +1,62 @@
-import { createRouter as createTanstackRouter } from '@tanstack/react-router'
-import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { RouterProvider, createRouter } from '@tanstack/react-router'
 import * as TanstackQuery from './integrations/tanstack-query/root-provider'
 
-// Import the generated route tree
 import { routeTree } from './routeTree.gen'
+import { AuthContextProvider, type AuthContextType, useAuth } from './lib/auth'
+import './styles.css'
 
-// Create a new router instance
-export const createRouter = () => {
-  const rqContext = TanstackQuery.getContext()
+const rqContext = TanstackQuery.getContext()
 
-  const router = createTanstackRouter({
-    routeTree,
-    context: { ...rqContext },
-    defaultPreload: 'intent',
-    Wrap: (props: { children: React.ReactNode }) => {
-      return (
-        <TanstackQuery.Provider {...rqContext}>
-          {props.children}
-        </TanstackQuery.Provider>
-      )
-    },
-  })
+// Set up a Router instance
+const router = createRouter({
+  routeTree,
+  defaultPreload: 'intent',
+  scrollRestoration: true,
+  context: {
+    ...rqContext,
+    auth: undefined!, // This will be set after we wrap the app in AuthContextProvider
+  },
+})
 
-  setupRouterSsrQueryIntegration({ router, queryClient: rqContext.queryClient })
-
-  return router
-}
-
-// Register the router instance for type safety
+// Register things for typesafety
 declare module '@tanstack/react-router' {
   interface Register {
-    router: ReturnType<typeof createRouter>
+    router: typeof router
   }
+}
+
+function InnerApp() {
+  const auth = useAuth()
+
+  // If the provider is initially loading, do not render the router
+  if (auth.isInitialLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center p-4">
+        <div className="size-10 rounded-full border-4 border-gray-200 border-t-foreground animate-spin" />
+      </div>
+    )
+  }
+
+  return <RouterProvider router={router} context={{ auth }} />
+}
+
+function App() {
+  return (
+    <AuthContextProvider>
+      <InnerApp />
+    </AuthContextProvider>
+  )
+}
+
+const rootElement = document.getElementById('app')!
+
+if (!rootElement.innerHTML) {
+  const root = ReactDOM.createRoot(rootElement)
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  )
 }
