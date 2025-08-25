@@ -1,62 +1,41 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { RouterProvider, createRouter } from '@tanstack/react-router'
-import * as TanstackQuery from './integrations/tanstack-query/root-provider'
+import * as TanstackQuery from "@/integrations/tanstack-query/root-provider";
+import { createRouter as createTanstackRouter } from "@tanstack/react-router";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
-import { routeTree } from './routeTree.gen'
-import { AuthContextProvider, type AuthContextType, useAuth } from './lib/auth'
-import './styles.css'
+// Import the generated route tree
+import { routeTree } from "@/routeTree.gen";
 
-const rqContext = TanstackQuery.getContext()
+// Create a new router instance
+export const createRouter = () => {
+	const rqContext = TanstackQuery.getContext();
 
-// Set up a Router instance
-const router = createRouter({
-  routeTree,
-  defaultPreload: 'intent',
-  scrollRestoration: true,
-  context: {
-    ...rqContext,
-    auth: undefined!, // This will be set after we wrap the app in AuthContextProvider
-  },
-})
+	const router = createTanstackRouter({
+		routeTree,
+		context: { ...rqContext, auth: { currentUser: null } },
+		defaultPreload: "intent",
 
-// Register things for typesafety
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router
-  }
-}
+		Wrap: (props: { children: React.ReactNode }) => {
+			return (
+				<TanstackQuery.Provider {...rqContext}>
+					{props.children}
+				</TanstackQuery.Provider>
+			);
+		},
+	});
 
-function InnerApp() {
-  const auth = useAuth()
+	setupRouterSsrQueryIntegration({
+		router,
+		queryClient: rqContext.queryClient,
+	});
 
-  // If the provider is initially loading, do not render the router
-  if (auth.isInitialLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center p-4">
-        <div className="size-10 rounded-full border-4 border-gray-200 border-t-foreground animate-spin" />
-      </div>
-    )
-  }
+	return router;
+};
 
-  return <RouterProvider router={router} context={{ auth }} />
-}
+export const router = createRouter();
 
-function App() {
-  return (
-    <AuthContextProvider>
-      <InnerApp />
-    </AuthContextProvider>
-  )
-}
-
-const rootElement = document.getElementById('app')!
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  )
+// Register the router instance for type safety
+declare module "@tanstack/react-router" {
+	interface Register {
+		router: ReturnType<typeof createRouter>;
+	}
 }

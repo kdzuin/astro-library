@@ -1,5 +1,5 @@
 {
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "src/lib/server/auth/utils.bak"],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

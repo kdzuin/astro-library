@@ -1,6 +1,6 @@
 {
-  "short_name": "astro_library",
-  "name": "Astro Library",
+  "short_name": "TanStack App",
+  "name": "Create TanStack App Sample",
   "icons": [
     {
       "src": "favicon.ico",

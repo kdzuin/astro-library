@@ -3,17 +3,13 @@
   "mode": "file-router",
   "typescript": true,
   "tailwind": true,
-  "packageManager": "npm",
+  "packageManager": "pnpm",
   "git": true,
   "version": 1,
   "framework": "react-cra",
   "chosenAddOns": [
     "biome",
     "start",
-    "form",
-    "shadcn",
-    "t3env",
-    "table",
     "tanstack-query"
   ]
 }

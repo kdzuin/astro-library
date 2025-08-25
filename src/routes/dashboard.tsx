@@ -1,29 +1,38 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { useAuth } from '../lib/auth'
+import { PageHeader } from "@/components/layout/page-header";
+import { getUserById } from "@/lib/server/functions/users";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+export const Route = createFileRoute("/dashboard")({
+	component: RouteComponent,
+	beforeLoad: async ({ context, location }) => {
+		if (!context.auth.currentUser) {
+			throw redirect({
+				to: "/",
+				search: { redirect: location.href },
+			});
+		}
+		return {};
+	},
+	loader: async ({ context }) => {
+		if (context.auth.currentUser?.id) {
+			const uid = context.auth.currentUser.id;
+			const appUser = await getUserById({ data: uid });
 
-export const Route = createFileRoute('/dashboard')({
-    component: DashboardPage,
-    beforeLoad: ({ context }) => {
-        // Log for debugging
-        console.log('Checking context on index.tsx:', context) // Check if user is authenticated
-        if (context.auth.isAuthenticated) {
-          console.log('User authenticated, proceeding...')
-          throw redirect({
-            to: '/dashboard',
-          })
-        }
-      },
-    
-})
+			return {
+				currentUser: appUser,
+			};
+		}
 
-function DashboardPage() {
-  const { user } = useAuth()
+		return {};
+	},
+});
 
-  return (
-    <section className="grid gap-2 p-2">
-      <p>Hi {user?.displayName || user?.email || 'there'}!</p>
-      <p>You are currently on the dashboard route.</p>
-    </section>
-  )
+function RouteComponent() {
+	// const { currentUser } = Route.useLoaderData();
+
+	return (
+		<main>
+			<PageHeader title="Dashboard" hasBackButton />
+		</main>
+	);
 }
