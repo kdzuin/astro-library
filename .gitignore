@@ -13,3 +13,6 @@ todos.json
 .env.local
 .env
 .firebase/logs
+
+*storybook.log
+storybook-static
