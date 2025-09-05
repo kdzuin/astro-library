@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard")({
-	component: RouteComponent,
+	component: DashboardPage,
 	beforeLoad: async ({ context, location }) => {
 		if (!context.auth.currentUser) {
 			throw redirect({
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/dashboard")({
 		}
 		return {};
 	},
-	loader: async () => {
+	loader: async ({ context }) => {
 		// if (context.auth.currentUser?.id) {
 		// 	const uid = context.auth.currentUser.id;
 		// 	const appUser = await getUserById({ data: uid });
@@ -24,37 +24,46 @@ export const Route = createFileRoute("/dashboard")({
 		// 	};
 		// }
 
-		const timeline: any[] = [
-			{
-				date: "2025-07-04",
-				filters: {
-					Ha: 10000,
-					OIII: 4000,
-				},
-			},
-			{
-				date: "2025-08-01",
-				filters: {
-					Ha: 2000,
-					OIII: 1600,
-				},
-			},
-			{
-				date: "2025-08-02",
-				filters: {
-					Ha: 6000,
-					OIII: 4800,
-				},
-			},
-			{
-				date: "2025-08-03",
-				filters: {
-					Ha: 4200,
-					OIII: 3000,
-				},
-			},
-			{ date: "2025-08-18", filters: { L: 10000 } },
-		];
+		// const timeline: any[] = [
+		// 	{
+		// 		date: "2025-07-04",
+		// 		filters: {
+		// 			Ha: 10000,
+		// 			OIII: 4000,
+		// 		},
+		// 	},
+		// 	{
+		// 		date: "2025-08-01",
+		// 		filters: {
+		// 			Ha: 2000,
+		// 			OIII: 1600,
+		// 		},
+		// 	},
+		// 	{
+		// 		date: "2025-08-02",
+		// 		filters: {
+		// 			Ha: 6000,
+		// 			OIII: 4800,
+		// 		},
+		// 	},
+		// 	{
+		// 		date: "2025-08-03",
+		// 		filters: {
+		// 			Ha: 4200,
+		// 			OIII: 3000,
+		// 		},
+		// 	},
+		// 	{ date: "2025-08-18", filters: { L: 10000 } },
+		// ];
+
+		const uid = context.auth.currentUser?.id;
+
+		// let's get acquisitionDetails subcollection by userId
+		const acquisitionDetails = await getAcquisitionDetailsByUserId({
+			data: uid,
+		});
+
+		const timeline = [];
 
 		return {
 			timeline: timeline,
@@ -64,7 +73,7 @@ export const Route = createFileRoute("/dashboard")({
 	},
 });
 
-function RouteComponent() {
+function DashboardPage() {
 	const { timeline } = Route.useLoaderData();
 	return (
 		<main className="space-y-4">
