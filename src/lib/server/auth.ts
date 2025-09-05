@@ -1,26 +1,19 @@
-import { createServerFn } from "@tanstack/react-start";
-import { getAuthenticatedAppForUser } from "./firebase/serverApp";
-import type { AppUser } from "@/schemas/app-user";
+import { db } from "@/db"; // your drizzle instance
+import * as schema from "@/db/auth-schema";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-export const authFn = createServerFn({ method: "GET" })
-	.validator(() => ({}))
-	.handler(async () => {
-		try {
-			const { currentUser } = await getAuthenticatedAppForUser();
+import { env } from "@/env";
 
-			// Extract only serializable user data matching AppUser schema
-			const appUser: Partial<AppUser> | null = currentUser
-				? {
-						id: currentUser.uid,
-						email: currentUser.email || "",
-						displayName: currentUser.displayName || undefined,
-						photoURL: currentUser.photoURL || undefined,
-					}
-				: null;
-
-			return { currentUser: appUser };
-		} catch (error) {
-			console.error("Authentication error:", error);
-			return { currentUser: null };
-		}
-	});
+export const auth = betterAuth({
+	database: drizzleAdapter(db, {
+		provider: "pg",
+		schema,
+	}),
+	socialProviders: {
+		google: {
+			clientId: env.GOOGLE_CLIENT_ID,
+			clientSecret: env.GOOGLE_CLIENT_SECRET,
+		},
+	},
+});

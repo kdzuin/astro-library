@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/sidebar";
 import { FolderKanban, LayoutDashboard, LucideSparkle } from "lucide-react";
 
-import { signOut } from "@/lib/client/auth";
+import { signOut } from "@/lib/auth-client";
+
 import { Link, useMatchRoute, useRouteContext } from "@tanstack/react-router";
 
 // Menu items

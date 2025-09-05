@@ -14,8 +14,7 @@ import appCss from "../styles.css?url";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
-import { useUserSession } from "@/hooks/use-user-session";
-import { authFn } from "@/lib/server/auth";
+import { auth } from "@/lib/server/auth";
 import type { AppUser } from "@/schemas/app-user";
 import type { QueryClient } from "@tanstack/react-query";
 
@@ -52,10 +51,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	},
 
 	beforeLoad: async () => {
-		const { currentUser } = await authFn();
 		return {
 			auth: {
-				currentUser,
+				currentUser: null,
 			},
 		};
 	},
@@ -64,9 +62,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 });
 
 function RootDocument() {
-	const { auth } = Route.useRouteContext();
-	useUserSession(auth.currentUser);
-
+	// const { auth } = Route.useRouteContext();
 	return (
 		<html lang="en">
 			<head>
