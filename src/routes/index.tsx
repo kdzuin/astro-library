@@ -4,7 +4,7 @@ import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import React from "react";
 import { z } from "zod";
 
-import { signIn, signOut, useSession } from "@/lib/auth-client";
+import { signIn, signOut } from "@/lib/auth-client";
 import { getUserId, getUserInfo } from "@/lib/auth-server-func";
 
 const homeSearchSchema = z.object({
@@ -18,14 +18,13 @@ export const Route = createFileRoute("/")({
 	},
 	validateSearch: homeSearchSchema,
 	async beforeLoad() {
-		const userId = await getUserId();
-		return { userId };
+		const currentUser = await getUserInfo();
+		return { currentUser };
 	},
 	loader: async ({ context }) => {
-		const currentUser = await getUserInfo();
 		return {
-			userId: context.userId,
-			currentUser,
+			userId: context.currentUser?.id,
+			currentUser: context.currentUser,
 		};
 	},
 });

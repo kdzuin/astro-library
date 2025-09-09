@@ -13,6 +13,7 @@ export const authMiddleware = createMiddleware({ type: "function" }).server(
 					id: session?.user?.id,
 					name: session?.user?.name,
 					image: session?.user?.image,
+					email: session?.user?.email,
 				},
 			},
 		});

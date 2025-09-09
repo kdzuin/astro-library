@@ -1,7 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUserId } from "@/lib/auth-server-func";
-import { getAcquisitionDetailsByUserId } from "@/lib/server/functions/acquisitionDetails";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard")({

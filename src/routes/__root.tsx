@@ -14,14 +14,16 @@ import appCss from "../styles.css?url";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
-import { auth } from "@/lib/server/auth";
-import type { AppUser } from "@/schemas/app-user";
+import { AuthProvider, useSession } from "@/lib/auth-client";
 import type { QueryClient } from "@tanstack/react-query";
+import type { User } from "better-auth";
+import { useEffect, useState } from "react";
 
 export interface MyRouterContext {
 	queryClient: QueryClient;
 	auth: {
-		currentUser?: AppUser | null;
+		currentUser?: User | null;
+		userId?: User["id"] | null;
 	};
 }
 
@@ -49,37 +51,41 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	notFoundComponent: () => {
 		return <p>This page doesn't exist!</p>;
 	},
-
-	beforeLoad: async () => {
-		return {
-			auth: {
-				currentUser: null,
-			},
-		};
-	},
-
 	shellComponent: RootDocument,
 });
 
 function RootDocument() {
-	// const { auth } = Route.useRouteContext();
+	const [currentUser, setUser] = useState<User | null>(null);
+	const session = useSession();
+
+	useEffect(() => {
+		setUser(session?.data?.user ?? null);
+	}, [session]);
+
 	return (
 		<html lang="en">
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				<SidebarProvider defaultOpen={true}>
-					<div className="flex min-h-screen w-full">
-						<AppSidebar />
-						<SidebarInset>
-							<main className="flex-1 w-full px-6 py-4 pe-15">
-								<Outlet />
-							</main>
-						</SidebarInset>
-					</div>
-					<Toaster />
-				</SidebarProvider>
+				<AuthProvider
+					value={{
+						currentUser,
+						userId: session?.data?.user?.id,
+					}}
+				>
+					<SidebarProvider defaultOpen={true}>
+						<div className="flex min-h-screen w-full">
+							<AppSidebar />
+							<SidebarInset>
+								<main className="flex-1 w-full px-6 py-4 pe-15">
+									<Outlet />
+								</main>
+							</SidebarInset>
+						</div>
+						<Toaster />
+					</SidebarProvider>
+				</AuthProvider>
 
 				<TanstackDevtools
 					config={{

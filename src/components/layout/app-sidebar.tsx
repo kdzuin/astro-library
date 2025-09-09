@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/sidebar";
 import { FolderKanban, LayoutDashboard, LucideSparkle } from "lucide-react";
 
-import { signOut } from "@/lib/auth-client";
+import { signOut, useAuth } from "@/lib/auth-client";
 
-import { Link, useMatchRoute, useRouteContext } from "@tanstack/react-router";
+import { Link, useMatchRoute } from "@tanstack/react-router";
 
 // Menu items
 const items = [
@@ -34,9 +34,8 @@ const items = [
 ];
 
 export function AppSidebar() {
-	const { auth } = useRouteContext({ from: "__root__" });
-	const currentUser = auth.currentUser;
 	const matchRoute = useMatchRoute();
+	const { currentUser } = useAuth();
 
 	const handleSignOut = async () => {
 		signOut();
@@ -45,10 +44,6 @@ export function AppSidebar() {
 	const isActiveRoute = (itemUrl: string) => {
 		return !!matchRoute({ to: itemUrl, fuzzy: true });
 	};
-
-	if (!currentUser) {
-		return null;
-	}
 
 	return (
 		<>
@@ -88,25 +83,27 @@ export function AppSidebar() {
 					</SidebarGroup>
 				</SidebarContent>
 				<SidebarFooter>
-					<NavUser
-						handleSignOut={handleSignOut}
-						user={{
-							name:
-								currentUser.displayName ||
-								currentUser.email?.split("@")[0] ||
-								"User",
-							initials: currentUser.displayName
-								? currentUser.displayName
-										.split(" ")
-										.map((name) => name[0])
-										.join("")
-										.toUpperCase()
-								: currentUser.email?.charAt(0).toUpperCase() || "",
-							email: currentUser.email || "",
-							avatar: currentUser.photoURL || "",
-							id: currentUser.id || "",
-						}}
-					/>
+					{currentUser ? (
+						<NavUser
+							handleSignOut={handleSignOut}
+							user={{
+								name:
+									currentUser.name ||
+									currentUser.email?.split("@")[0] ||
+									"User",
+								initials: currentUser.name
+									? currentUser.name
+											.split(" ")
+											.map((name) => name[0])
+											.join("")
+											.toUpperCase()
+									: currentUser.email?.charAt(0).toUpperCase() || "",
+								email: currentUser.email || "",
+								avatar: currentUser.image || "",
+								id: currentUser.id || "",
+							}}
+						/>
+					) : null}
 				</SidebarFooter>
 			</Sidebar>
 		</>

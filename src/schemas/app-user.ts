@@ -3,8 +3,8 @@ import { z } from "zod";
 export const appUserSchema = z.object({
 	id: z.string(),
 	email: z.string().email(),
-	displayName: z.string().optional(),
-	photoURL: z.url().optional(),
+	name: z.string().optional(),
+	image: z.url().optional(),
 	createdAt: z.date(),
 	updatedAt: z.date(),
 });
@@ -12,14 +12,14 @@ export const appUserSchema = z.object({
 export const createAppUserSchema = z.object({
 	id: z.string(),
 	email: z.string().email(),
-	displayName: z.string().optional(),
-	photoURL: z.url().optional(),
+	name: z.string().optional(),
+	image: z.url().optional(),
 });
 
 export const updateAppUserSchema = z
 	.object({
-		displayName: z.string().optional(),
-		photoURL: z.url().optional(),
+		name: z.string().optional(),
+		image: z.url().optional(),
 	})
 	.partial();
 

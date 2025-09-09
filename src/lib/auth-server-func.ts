@@ -10,9 +10,14 @@ export const getUserId = createServerFn({ method: "GET" })
 export const getUserInfo = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.handler(async ({ context }) => {
+		if (!context?.user || !context?.user.id) {
+			return null;
+		}
+
 		return {
-			id: context?.user?.id,
-			name: context?.user?.name,
-			image: context?.user?.image,
+			id: context.user.id,
+			name: context.user.name,
+			email: context.user.email,
+			image: context.user.image,
 		};
 	});
