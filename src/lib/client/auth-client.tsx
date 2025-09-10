@@ -9,12 +9,16 @@ interface AuthContextValue {
 	currentUser?: Partial<User> | null;
 	userId?: User["id"] | null;
 	isLoading?: boolean;
+	signIn: typeof signIn;
+	signOut: typeof signOut;
 }
 
 const AuthContext = createContext<AuthContextValue>({
 	currentUser: null,
 	userId: null,
 	isLoading: false,
+	signIn,
+	signOut,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -26,6 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				currentUser: session?.user,
 				userId: session?.user?.id,
 				isLoading: isPending,
+				signIn,
+				signOut,
 			}}
 		>
 			{children}

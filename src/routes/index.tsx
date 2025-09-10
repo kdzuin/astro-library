@@ -1,48 +1,22 @@
-import { Button } from "@/components/ui/button";
-import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
-import { BarChart3, Camera, Database, Star, Telescope, type LucideIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { z } from "zod";
+import { createFileRoute } from "@tanstack/react-router";
+import { BarChart3, Camera, Database, Telescope } from "lucide-react";
 
-import { signIn, signOut } from "@/lib/client/auth-client";
+import { AuthCTA } from "@/components/landing/auth-cta";
+import { FeatureCard } from "@/components/landing/feature-card";
 import { getUserInfo } from "@/lib/server/auth-server-func";
 import { cn } from "@/lib/utils";
 
-const homeSearchSchema = z.object({
-	redirect: z.string().optional(),
+export const Route = createFileRoute("/")({
+	component: LandingPage,
+	notFoundComponent: () => {
+		return <p>This page doesn't exist!</p>;
+	},
+	loader: async () => {
+		return {
+			currentUser: await getUserInfo(),
+		};
+	},
 });
-
-// Feature Icon Component
-interface FeatureIconProps {
-	icon: LucideIcon;
-	gradientClass: string;
-}
-
-function FeatureIcon({ icon: Icon, gradientClass }: FeatureIconProps) {
-	return (
-		<div className={`w-12 h-12 ${gradientClass} rounded-lg flex items-center justify-center mb-4`}>
-			<Icon className="h-6 w-6 text-white" />
-		</div>
-	);
-}
-
-// Feature Card Component
-interface FeatureCardProps {
-	icon: LucideIcon;
-	gradientClass: string;
-	title: string;
-	description: string;
-}
-
-function FeatureCard({ icon, gradientClass, title, description }: FeatureCardProps) {
-	return (
-		<div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-colors">
-			<FeatureIcon icon={icon} gradientClass={gradientClass} />
-			<h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
-			<p className="text-white/70">{description}</p>
-		</div>
-	);
-}
 
 // Feature data
 const features = [
@@ -50,75 +24,34 @@ const features = [
 		icon: Telescope,
 		gradientClass: "bg-gradient-blue-purple",
 		title: "Project Management",
-		description: "Organize your astrophotography projects with detailed planning, target tracking, and progress monitoring."
+		description:
+			"Organize your astrophotography projects with detailed planning, target tracking, and progress monitoring.",
 	},
 	{
 		icon: Camera,
 		gradientClass: "bg-gradient-purple-pink",
 		title: "Session Tracking",
-		description: "Log imaging sessions with detailed acquisition data, weather conditions, and equipment settings."
+		description:
+			"Log imaging sessions with detailed acquisition data, weather conditions, and equipment settings.",
 	},
 	{
 		icon: Database,
 		gradientClass: "bg-gradient-green-blue",
 		title: "Equipment Library",
-		description: "Maintain a comprehensive database of your telescopes, cameras, filters, and accessories."
+		description:
+			"Maintain a comprehensive database of your telescopes, cameras, filters, and accessories.",
 	},
 	{
 		icon: BarChart3,
 		gradientClass: "bg-gradient-yellow-orange",
 		title: "Analytics & Insights",
-		description: "Analyze your imaging performance with detailed statistics and progress tracking over time."
-	}
+		description:
+			"Analyze your imaging performance with detailed statistics and progress tracking over time.",
+	},
 ];
 
-export const Route = createFileRoute("/")({
-	component: LandingPage,
-	notFoundComponent: () => {
-		return <p>This page doesn't exist!</p>;
-	},
-	validateSearch: homeSearchSchema,
-	async beforeLoad() {
-		const currentUser = await getUserInfo();
-		return { currentUser };
-	},
-	loader: async ({ context }) => {
-		return {
-			currentUserName: context.currentUser?.name,
-			currentUserId: context.currentUser?.id,
-		};
-	},
-});
-
 function LandingPage() {
-	const { currentUserName, currentUserId } = Route.useLoaderData();
-	const [isAuthPending, setIsAuthPending] = useState(false);
-	const search = Route.useSearch();
-	const router = useRouter();
-
-	const handleSignOut = async (event: React.MouseEvent<HTMLButtonElement>) => {
-		event.preventDefault();
-		setIsAuthPending(true);
-		await signOut();
-		window.location.reload();
-	};
-
-	const handleSignIn = (event: React.MouseEvent<HTMLButtonElement>) => {
-		event.preventDefault();
-		setIsAuthPending(true);
-		signIn.social({
-			provider: "google",
-			callbackURL: "/welcome",
-			newUserCallbackURL: "/welcome",
-		});
-	};
-
-	// Handle redirect after login
-	useEffect(() => {
-		if (currentUserId && search.redirect) {
-			router.navigate({ to: search.redirect });
-		}
-	}, [currentUserId, search.redirect, router]);
+	const { currentUser } = Route.useLoaderData();
 
 	return (
 		<main className="min-h-screen w-full bg-brand-gradient">
@@ -138,24 +71,13 @@ function LandingPage() {
 						results in numbers with precision and ease.
 					</p>
 
-					{/* Conditional CTAs based on auth status */}
-					<div className="flex flex-wrap gap-4 justify-center">
-						{currentUserId ? (
-							// Authenticated user CTAs
-							<>
-								<Button asChild variant="accent">
-									<Link to="/welcome">Continue as {currentUserName}</Link>
-								</Button>
-								<Button onClick={handleSignOut} disabled={isAuthPending}>
-									Logout
-								</Button>
-							</>
-						) : (
-							// Anonymous user CTA
-							<Button onClick={handleSignIn} disabled={isAuthPending}>
-								Continue with Google
-							</Button>
+					<div
+						className={cn(
+							"flex flex-wrap gap-4 justify-center ",
+							"starting:opacity-0",
 						)}
+					>
+						<AuthCTA isLoggedIn={!!currentUser} />
 					</div>
 				</div>
 			</div>

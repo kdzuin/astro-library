@@ -53,28 +53,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	shellComponent: RootDocument,
 });
 
-function ConditionalLayout({ children }: { children: React.ReactNode }) {
-	const router = useRouter();
-	const pathname = router.state.location.pathname;
-
-	// Routes that should NOT have sidebar
-	const publicRoutes = ["/", "/login"];
-	const isPublicRoute = publicRoutes.includes(pathname);
-
-	if (isPublicRoute) {
-		return <div className="min-h-screen">{children}</div>;
-	}
-
-	// Routes that should have sidebar
-	return (
-		<AuthProvider>
-			<div className="flex min-h-screen w-full">
-				<main className="flex-1 w-full">{children}</main>
-			</div>
-		</AuthProvider>
-	);
-}
-
 function RootDocument() {
 	return (
 		<html lang="en">
@@ -82,9 +60,13 @@ function RootDocument() {
 				<HeadContent />
 			</head>
 			<body className="dark">
-				<ConditionalLayout>
-					<Outlet />
-				</ConditionalLayout>
+				<AuthProvider>
+					<div className="flex min-h-screen w-full">
+						<main className="flex-1 w-full">
+							<Outlet />
+						</main>
+					</div>
+				</AuthProvider>
 				<Toaster />
 
 				<TanstackDevtools
