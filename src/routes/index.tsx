@@ -11,9 +11,13 @@ export const Route = createFileRoute("/")({
 	notFoundComponent: () => {
 		return <p>This page doesn't exist!</p>;
 	},
-	loader: async () => {
+	async beforeLoad() {
+		const currentUser = await getUserInfo();
+		return { currentUser };
+	},
+	loader: async ({ context }) => {
 		return {
-			currentUser: await getUserInfo(),
+			isLoggedIn: !!context.currentUser,
 		};
 	},
 });
@@ -51,7 +55,7 @@ const features = [
 ];
 
 function LandingPage() {
-	const { currentUser } = Route.useLoaderData();
+	const { isLoggedIn } = Route.useLoaderData();
 
 	return (
 		<main className="min-h-screen w-full bg-brand-gradient">
@@ -77,7 +81,7 @@ function LandingPage() {
 							"starting:opacity-0",
 						)}
 					>
-						<AuthCTA isLoggedIn={!!currentUser} />
+						<AuthCTA isLoggedIn={isLoggedIn} />
 					</div>
 				</div>
 			</div>

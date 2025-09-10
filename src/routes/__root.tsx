@@ -4,7 +4,6 @@ import {
 	Outlet,
 	Scripts,
 	createRootRouteWithContext,
-	useRouter,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
@@ -12,7 +11,6 @@ import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 
 import appCss from "../styles.css?url";
 
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/client/auth-client";
 import type { QueryClient } from "@tanstack/react-query";
@@ -66,8 +64,8 @@ function RootDocument() {
 							<Outlet />
 						</main>
 					</div>
+					<Toaster />
 				</AuthProvider>
-				<Toaster />
 
 				<TanstackDevtools
 					config={{
