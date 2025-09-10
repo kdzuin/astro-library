@@ -23,6 +23,15 @@ const buttonVariants = cva(
 					"gap-2 h-10 px-6 has-[>svg]:px-4",
 					"[&_svg:not([class*='size-'])]:size-4",
 				],
+				small: [
+					"text-xs font-medium rounded-full",
+					"gap-1 h-8 px-3 has-[>svg]:ps-2.5",
+					"[&_svg:not([class*='size-'])]:size-4",
+				],
+				icon: ["rounded-full size-10 [&_svg:not([class*='size-'])]:size-5"],
+				"icon-small": [
+					"rounded-full size-8 [&_svg:not([class*='size-'])]:size-4",
+				],
 			},
 		},
 		defaultVariants: {
