@@ -22,4 +22,9 @@ export const auth = betterAuth({
 			maxAge: 5 * 60, // Cache duration in seconds
 		},
 	},
+	trustedOrigins: [
+		"https://astro-library.dzuin.me",
+		"https://astro-library.netlify.app",
+		import.meta.env.DEV ? "http://localhost:3000" : "",
+	].filter(Boolean),
 });
