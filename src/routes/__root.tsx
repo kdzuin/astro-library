@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { env } from "@/env";
 import { AuthProvider } from "@/lib/client/auth-client";
 import type { QueryClient } from "@tanstack/react-query";
 import type { User } from "better-auth";
@@ -69,18 +70,20 @@ function RootDocument() {
 				</AuthProvider>
 				<Toaster />
 
-				<TanstackDevtools
-					config={{
-						position: "bottom-left",
-					}}
-					plugins={[
-						{
-							name: "Tanstack Router",
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-						TanStackQueryDevtools,
-					]}
-				/>
+				{env.VITE_DEV_MODE ? (
+					<TanstackDevtools
+						config={{
+							position: "bottom-left",
+						}}
+						plugins={[
+							{
+								name: "Tanstack Router",
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+							TanStackQueryDevtools,
+						]}
+					/>
+				) : null}
 				<Scripts />
 			</body>
 		</html>
