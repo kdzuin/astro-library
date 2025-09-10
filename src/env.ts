@@ -15,9 +15,7 @@ export const env = createEnv({
 	 */
 	clientPrefix: "VITE_",
 
-	client: {
-		VITE_DEV_MODE: z.boolean().optional(),
-	},
+	client: {},
 
 	/**
 	 * What object holds the environment variables at runtime. This is usually
@@ -30,7 +28,6 @@ export const env = createEnv({
 		GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
 		GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 		// Client variables from import.meta.env
-		VITE_DEV_MODE: import.meta.env.VITE_DEV_MODE,
 	},
 
 	/**
