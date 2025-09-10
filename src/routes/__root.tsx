@@ -4,6 +4,7 @@ import {
 	Outlet,
 	Scripts,
 	createRootRouteWithContext,
+	useRouter,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
@@ -12,12 +13,10 @@ import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider, useSession } from "@/lib/auth-client";
+import { AuthProvider } from "@/lib/client/auth-client";
 import type { QueryClient } from "@tanstack/react-query";
 import type { User } from "better-auth";
-import { useEffect, useState } from "react";
 
 export interface MyRouterContext {
 	queryClient: QueryClient;
@@ -54,38 +53,39 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	shellComponent: RootDocument,
 });
 
+function ConditionalLayout({ children }: { children: React.ReactNode }) {
+	const router = useRouter();
+	const pathname = router.state.location.pathname;
+
+	// Routes that should NOT have sidebar
+	const publicRoutes = ["/", "/login"];
+	const isPublicRoute = publicRoutes.includes(pathname);
+
+	if (isPublicRoute) {
+		return <div className="min-h-screen">{children}</div>;
+	}
+
+	// Routes that should have sidebar
+	return (
+		<AuthProvider>
+			<div className="flex min-h-screen w-full">
+				<main className="flex-1 w-full">{children}</main>
+			</div>
+		</AuthProvider>
+	);
+}
+
 function RootDocument() {
-	const [currentUser, setUser] = useState<User | null>(null);
-	const session = useSession();
-
-	useEffect(() => {
-		setUser(session?.data?.user ?? null);
-	}, [session]);
-
 	return (
 		<html lang="en">
 			<head>
 				<HeadContent />
 			</head>
-			<body>
-				<AuthProvider
-					value={{
-						currentUser,
-						userId: session?.data?.user?.id,
-					}}
-				>
-					<SidebarProvider defaultOpen={true}>
-						<div className="flex min-h-screen w-full">
-							<AppSidebar />
-							<SidebarInset>
-								<main className="flex-1 w-full px-6 py-4 pe-15">
-									<Outlet />
-								</main>
-							</SidebarInset>
-						</div>
-						<Toaster />
-					</SidebarProvider>
-				</AuthProvider>
+			<body className="dark">
+				<ConditionalLayout>
+					<Outlet />
+				</ConditionalLayout>
+				<Toaster />
 
 				<TanstackDevtools
 					config={{

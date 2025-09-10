@@ -1,8 +1,9 @@
 import { getUserById } from "@/lib/server/functions/users";
+import type { User } from "@/schemas/user";
 import { useQuery } from "@tanstack/react-query";
 
 export const useUserQuery = (userId: string | undefined) =>
-	useQuery({
+	useQuery<User | null, Error>({
 		queryKey: ["users", userId],
 		queryFn: () => {
 			if (!userId) throw new Error("User ID required");

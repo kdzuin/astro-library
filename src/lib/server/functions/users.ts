@@ -1,31 +1,36 @@
-import { type AppUser, appUserSchema } from "@/schemas/app-user";
 import { createServerFn } from "@tanstack/react-start";
+import { db } from "@/db";
+import { user } from "@/db/auth-schema";
+import { userSchema, type User } from "@/schemas/user";
+import { eq } from "drizzle-orm";
 
 export const getUserById = createServerFn({ method: "GET" })
 	.validator((userId: string) => userId)
-	.handler(async ({ data: userId }): Promise<AppUser | null> => {
+	.handler(async ({ data: userId }): Promise<User | null> => {
 		try {
-			throw new Error("Not implemented");
+			const result = await db
+				.select()
+				.from(user)
+				.where(eq(user.id, userId))
+				.limit(1);
+
+			if (result.length === 0) {
+				return null;
+			}
+
+			const userData = result[0];
+			
+			// Validate the data using Zod schema with safeParse
+			const validationResult = userSchema.safeParse(userData);
+			
+			if (!validationResult.success) {
+				console.error("User data validation failed:", validationResult.error);
+				return null;
+			}
+
+			return validationResult.data;
 		} catch (error) {
 			console.error("Error fetching user:", error);
 			throw new Error("Failed to fetch user data");
-		}
-	});
-
-export const ensureUserExists = createServerFn({ method: "POST" })
-	.validator(
-		(userData: {
-			id: string;
-			email: string;
-			displayName?: string;
-			photoURL?: string;
-		}) => userData,
-	)
-	.handler(async ({ data: userData }): Promise<AppUser> => {
-		try {
-			throw new Error("Not implemented");
-		} catch (error) {
-			console.error("Error ensuring user exists:", error);
-			throw new Error("Failed to create or fetch user");
 		}
 	});

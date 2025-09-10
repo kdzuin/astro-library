@@ -1,7 +1,8 @@
-import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getUserId } from "@/lib/auth-server-func";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { getUserId } from "@/lib/server/auth-server-func";
+import { Link, createFileRoute, redirect } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
 	component: DashboardPage,
@@ -24,25 +25,15 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardPage() {
 	const { userId } = Route.useLoaderData();
 	return (
-		<main className="space-y-4">
-			<PageHeader title={`Dashboard ${userId}`} hasBackButton />
+		<main className="w-full min-h-screen bg-brand-gradient text-white/80  px-4 sm:px-6 lg:px-8 py-10 space-y-4">
+			<Button asChild variant="modest">
+				<Link to="..">
+					<ArrowLeft /> Go Back
+				</Link>
+			</Button>
 			<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-				<Card>
-					<CardHeader>
-						<CardTitle>Calendar Heatmap</CardTitle>
-					</CardHeader>
-					<CardContent>heatmap</CardContent>
-				</Card>
-				<Card>
-					<CardHeader>
-						<CardTitle>Projects</CardTitle>
-					</CardHeader>
-					<CardContent>
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Neque
-						mollitia commodi veniam nihil? Ullam, nulla! Ad porro illo adipisci
-						iste?
-					</CardContent>
-				</Card>
+				<div>Heatmap</div>
+				<div>Projects</div>
 			</div>
 		</main>
 	);
