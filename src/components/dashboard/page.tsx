@@ -1,3 +1,4 @@
+import { HeatMap } from "@/components/dashboard/heat-map";
 import { ProjectList } from "@/components/dashboard/project-list";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import type { Project } from "@/schemas/project";
-import { Link } from "@tanstack/react-router";
+import { ClientOnly, Link } from "@tanstack/react-router";
 import { LucideArrowLeft, LucidePlus, LucideSearch } from "lucide-react";
 
 interface DashboardPageProps {
@@ -48,8 +49,28 @@ export function DashboardPage({ projects, isLoading }: DashboardPageProps) {
 				<Card>
 					<CardHeader>
 						<CardTitle>Heatmap</CardTitle>
+						<CardDescription>
+							Heatmap for the last 26 weeks in total exposure time per calendar
+							day.
+						</CardDescription>
 					</CardHeader>
-					<CardContent>heatmap here</CardContent>
+					<CardContent>
+						<ClientOnly
+							fallback={
+								<div className="w-full h-full bg-slate-50/5 animate-pulse rounded-md" />
+							}
+						>
+							<HeatMap
+								data={[
+									{ date: "2025-08-04", value: 4 },
+									{ date: "2025-08-05", value: 100 },
+									{ date: "2025-09-01", value: 200 },
+									{ date: "2025-09-12", value: 100 },
+								]}
+								numberOfWeeks={26}
+							/>
+						</ClientOnly>
+					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader>
