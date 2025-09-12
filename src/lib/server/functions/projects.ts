@@ -3,7 +3,7 @@ import { project, projectTag, tag } from "@/db/schema";
 import { type Project, projectSchema } from "@/schemas/project";
 import { type Tag, tagSchema } from "@/schemas/tag";
 import { createServerFn } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 
 /**
  * Create a new project with debug logging
@@ -66,42 +66,112 @@ export const createProject = createServerFn({ method: "POST" })
  * Main projects query - Returns only project data for maximum performance
  * Tags are loaded separately on the client side when needed
  */
+const orderFieldMap = {
+	created: project.createdAt,
+	name: project.name,
+	updated: project.updatedAt,
+} as const;
+
+const directionMap = {
+	asc: asc,
+	desc: desc,
+} as const;
+
 export const getProjectsByUserId = createServerFn({ method: "GET" })
-	.validator((userId: string) => userId)
-	.handler(async ({ data: userId }): Promise<Project[]> => {
-		try {
-			const projects = await db
-				.select({
-					id: project.id,
-					userId: project.userId,
-					name: project.name,
-					description: project.description,
-					status: project.status,
-					totalExposureTime: project.totalExposureTime,
-					createdAt: project.createdAt,
-					updatedAt: project.updatedAt,
-				})
-				.from(project)
-				.where(eq(project.userId, userId))
-				.orderBy(project.updatedAt);
+	.validator(
+		(data: {
+			userId: string;
+			limit?: number;
+			offset?: number;
+			order?: "updated" | "created" | "name";
+			direction?: "asc" | "desc";
+			cursor?: string;
+		}) => data,
+	)
+	.handler(
+		async ({ data }): Promise<{ projects: Project[]; nextCursor?: string }> => {
+			try {
+				const {
+					userId,
+					limit = 50,
+					offset = 0,
+					order = "updated",
+					direction = "desc",
+					cursor,
+				} = data;
 
-			// Validate each project
-			const validatedProjects: Project[] = [];
-			for (const proj of projects) {
-				const result = projectSchema.safeParse(proj);
-				if (result.success) {
-					validatedProjects.push(result.data);
-				} else {
-					console.error("Project validation failed:", result.error);
+				// Parse cursor if provided
+				let cursorData: { order: string; direction: string; value: string; id: string } | null = null;
+				if (cursor) {
+					try {
+						const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+						const [cursorOrder, cursorDirection, cursorValue, cursorId] = decoded.split(':');
+						cursorData = { order: cursorOrder, direction: cursorDirection, value: cursorValue, id: cursorId };
+					} catch (error) {
+						console.error("Invalid cursor format:", error);
+					}
 				}
-			}
 
-			return validatedProjects;
-		} catch (error) {
-			console.error("Error fetching projects:", error);
-			throw new Error("Failed to fetch projects");
-		}
-	});
+				// Use cursor data if available, otherwise use provided params
+				const finalOrder = cursorData?.order || order;
+				const finalDirection = cursorData?.direction || direction;
+				const orderField = orderFieldMap[finalOrder as keyof typeof orderFieldMap];
+
+				// Fetch one extra project to determine if there are more
+				const projects = await db
+					.select({
+						id: project.id,
+						userId: project.userId,
+						name: project.name,
+						description: project.description,
+						status: project.status,
+						totalExposureTime: project.totalExposureTime,
+						createdAt: project.createdAt,
+						updatedAt: project.updatedAt,
+					})
+					.from(project)
+					.where(eq(project.userId, userId))
+					.orderBy(directionMap[finalDirection as keyof typeof directionMap](orderField))
+					.limit(limit + 1)
+					.offset(offset);
+
+				// Determine if there are more projects
+				const hasMore = projects.length > limit;
+				const projectsToReturn = hasMore ? projects.slice(0, limit) : projects;
+
+				// Validate each project
+				const validatedProjects: Project[] = [];
+				for (const proj of projectsToReturn) {
+					const result = projectSchema.safeParse(proj);
+					if (result.success) {
+						validatedProjects.push(result.data);
+					} else {
+						console.error("Project validation failed:", result.error);
+					}
+				}
+
+				// Generate cursor for next page if there are more projects
+				let nextCursor: string | undefined;
+				if (hasMore && validatedProjects.length > 0) {
+					const lastProject = validatedProjects[validatedProjects.length - 1];
+					
+					const cursorValueMap = {
+						created: lastProject.createdAt.toISOString(),
+						name: lastProject.name,
+						updated: lastProject.updatedAt.toISOString(),
+					} as const;
+					
+					const cursorValue = cursorValueMap[finalOrder as keyof typeof cursorValueMap];
+					nextCursor = Buffer.from(`${finalOrder}:${finalDirection}:${cursorValue}:${lastProject.id}`).toString('base64');
+				}
+
+				return { projects: validatedProjects, nextCursor };
+			} catch (error) {
+				console.error("Error fetching projects:", error);
+				throw new Error("Failed to fetch projects");
+			}
+		},
+	);
 
 /**
  * Client-side tag loading - Load tags for specific project when needed

@@ -25,7 +25,7 @@ export const Route = createFileRoute("/projects")({
 
 function ProjectsPage() {
 	const { userId } = Route.useLoaderData();
-	const { data: projects } = useProjectsByUserQuery(userId);
+	const { data } = useProjectsByUserQuery(userId);
 
 	return (
 		<main className="w-full min-h-screen bg-brand-gradient text-white/80  px-4 sm:px-6 lg:px-8 py-10 space-y-4">
@@ -38,7 +38,7 @@ function ProjectsPage() {
 				<div className="text-3xl md:text-4xl font-bold">Projects</div>
 			</div>
 			<div className="">
-				{projects?.map((project) => (
+				{data?.projects.map((project) => (
 					<div key={project.id}>
 						<Link to="/projects/$projectId" params={{ projectId: project.id }}>
 							{project.name}

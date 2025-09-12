@@ -7,13 +7,15 @@ import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 
 export const useProjectsByUserQuery = (
 	userId: string,
-	options?: Partial<UseQueryOptions<Project[], Error>>,
+	options?: Partial<
+		UseQueryOptions<{ projects: Project[]; nextCursor?: string }, Error>
+	>,
 ) =>
-	useQuery<Project[], Error>({
+	useQuery<{ projects: Project[]; nextCursor?: string }, Error>({
 		queryKey: projectQueryKeys.byUser(userId),
 		queryFn: () => {
 			if (!userId) throw new Error("User ID required");
-			return getProjectsByUserId({ data: userId });
+			return getProjectsByUserId({ data: { userId } });
 		},
 		enabled: !!userId,
 		staleTime: 5 * 60 * 1000,
