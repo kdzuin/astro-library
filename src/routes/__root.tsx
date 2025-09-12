@@ -32,7 +32,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			},
 			{
 				name: "viewport",
-				content: "width=device-width, initial-scale=1",
+				content: "width=device-width, initial-scale=1, viewport-fit=cover",
 			},
 			{
 				title: "Astro Library",
@@ -56,10 +56,6 @@ function RootDocument() {
 		<html lang="en">
 			<head>
 				<HeadContent />
-				<meta
-					name="viewport"
-					content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-				/>
 			</head>
 			<body className="dark">
 				<AuthProvider>
