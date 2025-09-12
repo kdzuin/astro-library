@@ -72,6 +72,7 @@
 		@apply m-0;
 		@apply bg-background bg-gradient-brand bg-fixed;
 		@apply text-foreground;
+		@apply h-dvh;
 
 		@apply pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)];
 	}
