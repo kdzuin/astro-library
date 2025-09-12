@@ -15,7 +15,6 @@ export const Route = createFileRoute("/dashboard")({
 		if (!context.userId) {
 			throw redirect({
 				to: "/",
-				search: { redirect: location.href },
 			});
 		}
 
