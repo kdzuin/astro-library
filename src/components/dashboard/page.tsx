@@ -10,7 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import type { Project } from "@/schemas/project";
-import { ClientOnly, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { LucideArrowLeft, LucidePlus, LucideSearch } from "lucide-react";
 
 interface DashboardPageProps {
@@ -45,7 +45,7 @@ export function DashboardPage({ projects, isLoading }: DashboardPageProps) {
 				</div>
 			) : null}
 
-			<div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+			<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 				<Card>
 					<CardHeader>
 						<CardTitle>Heatmap</CardTitle>
@@ -55,21 +55,15 @@ export function DashboardPage({ projects, isLoading }: DashboardPageProps) {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ClientOnly
-							fallback={
-								<div className="w-full h-full bg-slate-50/5 animate-pulse rounded-md" />
-							}
-						>
-							<HeatMap
-								data={[
-									{ date: "2025-08-04", value: 4 },
-									{ date: "2025-08-05", value: 100 },
-									{ date: "2025-09-01", value: 200 },
-									{ date: "2025-09-12", value: 100 },
-								]}
-								numberOfWeeks={26}
-							/>
-						</ClientOnly>
+						<HeatMap
+							data={[
+								{ date: "2025-08-04", value: 4 },
+								{ date: "2025-08-05", value: 100 },
+								{ date: "2025-09-01", value: 200 },
+								{ date: "2025-09-12", value: 100 },
+							]}
+							numberOfWeeks={26}
+						/>
 					</CardContent>
 				</Card>
 				<Card>

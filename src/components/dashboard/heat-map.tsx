@@ -35,10 +35,27 @@ export function HeatMap({ numberOfWeeks = 12, data = [] }: HeatMapProps) {
 		return Math.max(...data.map((d) => d.value));
 	}, [data]);
 
-	const days = useMemo(() => {
-		const startDate = new Date("2025-01-01");
-		const endDate = new Date("2025-12-31");
+	const [startDate, endDate, now] = useMemo(() => {
+		const now = new Date();
 
+		// Find the most recent Monday (start of current week)
+		const today = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+		const daysToLastMonday = today === 0 ? 6 : today - 1; // Days back to get to Monday
+		const thisMonday = new Date(now);
+		thisMonday.setDate(now.getDate() - daysToLastMonday);
+
+		// Start date: (numberOfWeeks - 1) weeks before last Monday
+		const startDate = new Date(thisMonday);
+		startDate.setDate(thisMonday.getDate() - (numberOfWeeks - 1) * 7);
+
+		// End date: Last Monday + 6 days (end of current week)
+		const endDate = new Date(thisMonday);
+		endDate.setDate(thisMonday.getDate() + 6);
+
+		return [startDate, endDate, now];
+	}, [numberOfWeeks]);
+
+	const days = useMemo(() => {
 		const result: Record<string, number> = {};
 		for (
 			let date = new Date(startDate);
@@ -50,29 +67,11 @@ export function HeatMap({ numberOfWeeks = 12, data = [] }: HeatMapProps) {
 		}
 
 		return result;
-	}, [data]);
+	}, [data, startDate, endDate]);
 
 	const weeks = useMemo(() => {
-		const now = new Date();
-
-		// Find the most recent Monday (start of current week)
-		const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-		const daysToLastMonday = currentDay === 0 ? 6 : currentDay - 1; // Days back to get to Monday
-		const lastMonday = new Date(now);
-		lastMonday.setDate(now.getDate() - daysToLastMonday);
-
-		// Start date: (numberOfWeeks - 1) weeks before last Monday
-		const startDate = new Date(lastMonday);
-		startDate.setDate(lastMonday.getDate() - (numberOfWeeks - 1) * 7);
-
-		// End date: Last Monday + 6 days (end of current week)
-		const endDate = new Date(lastMonday);
-		endDate.setDate(lastMonday.getDate() + 6);
-
-		const firstDay = new Date(startDate);
-
 		const weeks: Array<Array<{ date: string; count: number } | undefined>> = [];
-		const currentDate = new Date(firstDay);
+		const datePointer = new Date(startDate);
 
 		// Generate exactly numberOfWeeks weeks, but stop at current date
 		while (weeks.length < numberOfWeeks) {
@@ -80,10 +79,10 @@ export function HeatMap({ numberOfWeeks = 12, data = [] }: HeatMapProps) {
 
 			// Generate 7 days for this week (Monday to Sunday)
 			for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-				const dateStr = currentDate.toISOString().split("T")[0];
+				const dateStr = datePointer.toISOString().split("T")[0];
 
 				// Only add days up to today
-				if (currentDate <= now) {
+				if (datePointer <= now) {
 					week.push({
 						date: dateStr,
 						count: days[dateStr] || 0,
@@ -92,27 +91,28 @@ export function HeatMap({ numberOfWeeks = 12, data = [] }: HeatMapProps) {
 					week.push(undefined);
 				}
 
-				currentDate.setDate(currentDate.getDate() + 1);
+				datePointer.setDate(datePointer.getDate() + 1);
 			}
 
 			weeks.push(week);
 		}
 
 		return weeks;
-	}, [days, numberOfWeeks]);
+	}, [days, numberOfWeeks, startDate, now]);
 
 	return (
-		<div className="w-full grid grid-flow-col gap-1">
+		<div className={cn("w-full grid gap-1 grid-flow-col")}>
 			{weeks.map((week, weekIndex) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-				<div key={weekIndex} className="grid grid-flow-row gap-[inherit]">
+				<div
+					key={weekIndex}
+					className={cn("grid gap-[inherit]", "grid-rows-7")}
+				>
 					{week.map((day, dayIndex) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
 						<Tooltip key={dayIndex}>
 							<TooltipTrigger asChild>
 								<div
 									className={cn(
-										"aspect-square rounded-[12%]",
+										"aspect-square rounded-[12%] min-w-0 min-h-0",
 										day ? "bg-white/5" : "bg-transparent",
 									)}
 									style={{
@@ -133,13 +133,6 @@ export function HeatMap({ numberOfWeeks = 12, data = [] }: HeatMapProps) {
 					))}
 				</div>
 			))}
-			{/* {Object.entries(days).map(([date, count]) => (
-				<div
-					key={date}
-					className="aspect-square bg-white/5"
-					data-count={count}
-				/>
-			))} */}
 		</div>
 	);
 }
