@@ -11,7 +11,7 @@ export const getAcquisitionDetailsByUserId = createServerFn({
 	)
 	.handler(async ({ data: userId }): Promise<AcquisitionDetails[] | null> => {
 		try {
-			throw new Error("Not implemented");
+			throw new Error(`Not implemented ${userId}`);
 		} catch (error) {
 			console.error("Error fetching acquisition details:", error);
 			throw new Error("Failed to fetch acquisition details data");
