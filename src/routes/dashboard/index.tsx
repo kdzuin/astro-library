@@ -1,9 +1,9 @@
-import { DashboardPage } from "@/components/dashboard/page";
-import { getUserId } from "@/lib/server/auth-server-func";
-import { getProjectsByUserId } from "@/lib/server/functions/projects";
+import { DashboardPage } from "@/components/dashboard/page.tsx";
+import { getUserId } from "@/lib/server/auth-server-func.ts";
+import { getProjectsByUserId } from "@/lib/server/functions/projects.ts";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/dashboard/")({
 	component: Dashboard,
 	pendingComponent: (props) => <DashboardPage {...props} isLoading />,
 	beforeLoad: async () => {
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/dashboard")({
 		if (!context.userId) {
 			throw redirect({
 				to: "/",
-			});
+			})
 		}
 
 		const result = await getProjectsByUserId({
@@ -24,9 +24,13 @@ export const Route = createFileRoute("/dashboard")({
 				order: "updated",
 				direction: "desc",
 			},
-		});
+		})
 
-		return { userId: context.userId, projects: result.projects, nextCursor: result.nextCursor };
+		return {
+			userId: context.userId,
+			projects: result.projects,
+			nextCursor: result.nextCursor,
+		}
 	},
 });
 

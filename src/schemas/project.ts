@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { tagSchema } from "./tag";
 
-// Base project schema for database table
+// Base project schema for a database table
 export const projectSchema = z.object({
 	id: z.string(),
 	userId: z.string(),
@@ -22,10 +22,8 @@ export const projectWithTagsSchema = projectSchema.extend({
 
 // Schema for creating projects
 export const createProjectSchema = projectSchema.omit({
-	id: true,
 	createdAt: true,
 	updatedAt: true,
-	userId: true,
 });
 
 // Schema for updating projects
@@ -33,7 +31,6 @@ export const updateProjectSchema = projectSchema
 	.omit({
 		id: true,
 		userId: true,
-		totalExposureTime: true,
 		createdAt: true,
 		updatedAt: true,
 	})

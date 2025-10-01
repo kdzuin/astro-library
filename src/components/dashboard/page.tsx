@@ -29,15 +29,6 @@ export function DashboardPage({ projects, isLoading }: DashboardPageProps) {
 				</Button>
 				<div className="text-3xl md:text-4xl font-bold">Dashboard</div>
 			</div>
-			{/* <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-				<span className="text-xs font-bold">Quick Actions:</span>
-				<Button asChild size="small">
-					<Link to="/projects/new">
-						<PlusIcon />
-						New Project
-					</Link>
-				</Button>
-			</div> */}
 
 			{isLoading && !projects?.length ? (
 				<div className="flex justify-start py-12 text-2xl text-white/50">
@@ -78,13 +69,13 @@ export function DashboardPage({ projects, isLoading }: DashboardPageProps) {
 					</CardContent>
 					<CardFooter className="border-t flex gap-2">
 						<Button asChild size="small">
-							<Link to="/projects">
+							<Link to="/dashboard/projects">
 								<LucideSearch />
 								Open all projects
 							</Link>
 						</Button>
 						<Button asChild size="small">
-							<Link to="/projects/new">
+							<Link to="/dashboard/projects/new">
 								<LucidePlus />
 								Add new project
 							</Link>

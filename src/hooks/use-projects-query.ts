@@ -5,6 +5,11 @@ import {
 import type { Project } from "@/schemas/project";
 import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 
+/**
+ * Query Hook to fetch projects by user ID
+ * @param userId
+ * @param options
+ */
 export const useProjectsByUserQuery = (
 	userId: string,
 	options?: Partial<
@@ -25,6 +30,10 @@ export const useProjectsByUserQuery = (
 		...options,
 	});
 
+/**
+ * Query Hook to fetch a single project by ID
+ * @param projectId
+ */
 export const useProjectByIdQuery = (projectId: string) =>
 	useQuery<Project | null, Error>({
 		queryKey: projectQueryKeys.byId(projectId),
@@ -39,6 +48,9 @@ export const useProjectByIdQuery = (projectId: string) =>
 		refetchOnMount: true,
 	});
 
+/**
+ * Query cache keys for projects
+ */
 export const projectQueryKeys = {
 	all: ["projects"] as const,
 	byUser: (userId: string) => ["projects", "by-user", userId] as const,

@@ -2,6 +2,10 @@ import { getUserById } from "@/lib/server/functions/users";
 import type { User } from "@/schemas/user";
 import { useQuery } from "@tanstack/react-query";
 
+/**
+ * Query hook to fetch a user by ID
+ * @param userId
+ */
 export const useUserQuery = (userId: string | undefined) =>
 	useQuery<User | null, Error>({
 		queryKey: ["users", userId],
@@ -14,7 +18,9 @@ export const useUserQuery = (userId: string | undefined) =>
 		gcTime: 10 * 60 * 1000, // 10 minutes
 	});
 
-// Export query keys for cache management
+/**
+ * Query cache keys for users
+ */
 export const userQueryKeys = {
 	all: ["users"] as const,
 	byId: (id: string) => ["users", id] as const,

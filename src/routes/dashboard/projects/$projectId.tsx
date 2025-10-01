@@ -1,15 +1,21 @@
-import { Button } from "@/components/ui/button";
-import { getProjectById } from "@/lib/server/functions/projects";
+import { Button } from "@/components/ui/button.tsx";
+import { getProjectById } from "@/lib/server/functions/projects.ts";
+import { getSessionByProjectId } from "@/lib/server/functions/sessions.ts";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/projects_/$projectId")({
-	component: RouteComponent,
+export const Route = createFileRoute("/dashboard/projects/$projectId")({
+	component: ProjectPage,
 	beforeLoad: async ({ params }) => {
 		const projectData = await getProjectById({
 			data: params.projectId,
 		});
-		return { projectId: params.projectId, projectData };
+
+		const projectSessions = await getSessionByProjectId({
+			data: params.projectId,
+		});
+
+		return { projectId: params.projectId, projectData, projectSessions };
 	},
 	loader: async ({ context }) => {
 		return {
@@ -19,7 +25,7 @@ export const Route = createFileRoute("/projects_/$projectId")({
 	},
 });
 
-function RouteComponent() {
+function ProjectPage() {
 	const { projectId, projectData } = Route.useLoaderData();
 
 	return (

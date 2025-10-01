@@ -1,66 +1,13 @@
 import { db } from "@/db";
 import { project, projectTag, tag } from "@/db/schema";
-import { type Project, projectSchema } from "@/schemas/project";
+import {
+	type Project,
+	createProjectSchema,
+	projectSchema,
+} from "@/schemas/project";
 import { type Tag, tagSchema } from "@/schemas/tag";
 import { createServerFn } from "@tanstack/react-start";
 import { asc, desc, eq } from "drizzle-orm";
-
-/**
- * Create a new project with debug logging
- */
-export const createProject = createServerFn({ method: "POST" })
-	.validator((data: { name: string; userId: string; description?: string }) => {
-		console.log("[DEBUG] createProject validator input:", data);
-		return data;
-	})
-	.handler(async ({ data }): Promise<Project> => {
-		console.log("[DEBUG] createProject handler started with data:", data);
-
-		try {
-			const projectId = crypto.randomUUID();
-			const now = new Date();
-
-			const projectData = {
-				id: projectId,
-				userId: data.userId,
-				name: data.name,
-				description: data.description || null,
-				status: "planning" as const,
-				totalExposureTime: null,
-				createdAt: now,
-				updatedAt: now,
-			};
-
-			// Insert into database
-			await db.insert(project).values(projectData).returning();
-
-			// Validate and return the created project
-			console.log("[DEBUG] Validating project data with schema...");
-			const result = projectSchema.safeParse(projectData);
-			if (!result.success) {
-				console.error(
-					"[DEBUG] Project validation failed:",
-					result.error.issues,
-				);
-				throw new Error(
-					`Failed to create project: validation error - ${JSON.stringify(result.error.issues)}`,
-				);
-			}
-
-			console.log("[DEBUG] Project created successfully:", result.data);
-			return result.data;
-		} catch (error) {
-			console.error("[DEBUG] Error in createProject handler:", {
-				message: error instanceof Error ? error.message : "Unknown error",
-				stack: error instanceof Error ? error.stack : undefined,
-				data: data,
-				error: error,
-			});
-			throw new Error(
-				`Failed to create project: ${error instanceof Error ? error.message : "Unknown error"}`,
-			);
-		}
-	});
 
 /**
  * Main projects query - Returns only project data for maximum performance
@@ -77,6 +24,66 @@ const directionMap = {
 	desc: desc,
 } as const;
 
+/**
+ * Create a new project
+ */
+export const createProject = createServerFn({ method: "POST" })
+	.validator((data: { name: string; userId: string; description?: string }) => {
+		console.log("[DEBUG] createProject validator input:", data);
+		const validated = createProjectSchema.safeParse({
+			id: crypto.randomUUID(),
+			userId: data.userId,
+			name: data.name,
+			description: data.description || null,
+			status: "planning" as const,
+			totalExposureTime: null,
+		});
+		if (!validated.success) {
+			console.error(
+				"[DEBUG] Project validation failed:",
+				validated.error.issues,
+			);
+			throw new Error(
+				`Failed to create project: validation error - ${JSON.stringify(validated.error.issues)}`,
+			);
+		}
+
+		return validated.data;
+	})
+	.handler(async ({ data }): Promise<Project> => {
+		console.log("[DEBUG] createProject handler started with data:", data);
+
+		try {
+			// Insert into database
+			const [insertedProject] = await db
+				.insert(project)
+				.values(data)
+				.returning();
+
+			const dbResponse = projectSchema.safeParse(insertedProject);
+
+			if (dbResponse.success) {
+				console.log("[DEBUG] Project created successfully:", insertedProject);
+				return dbResponse.data;
+			}
+
+			throw new Error("Failed to create project");
+		} catch (error) {
+			console.error("[DEBUG] Error in createProject handler:", {
+				message: error instanceof Error ? error.message : "Unknown error",
+				stack: error instanceof Error ? error.stack : undefined,
+				data,
+				error,
+			});
+			throw new Error(
+				`Failed to create project: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
+		}
+	});
+
+/**
+ * Get projects for a user
+ */
 export const getProjectsByUserId = createServerFn({ method: "GET" })
 	.validator(
 		(data: {
@@ -101,12 +108,23 @@ export const getProjectsByUserId = createServerFn({ method: "GET" })
 				} = data;
 
 				// Parse cursor if provided
-				let cursorData: { order: string; direction: string; value: string; id: string } | null = null;
+				let cursorData: {
+					order: string;
+					direction: string;
+					value: string;
+					id: string;
+				} | null = null;
 				if (cursor) {
 					try {
-						const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-						const [cursorOrder, cursorDirection, cursorValue, cursorId] = decoded.split(':');
-						cursorData = { order: cursorOrder, direction: cursorDirection, value: cursorValue, id: cursorId };
+						const decoded = Buffer.from(cursor, "base64").toString("utf-8");
+						const [cursorOrder, cursorDirection, cursorValue, cursorId] =
+							decoded.split(":");
+						cursorData = {
+							order: cursorOrder,
+							direction: cursorDirection,
+							value: cursorValue,
+							id: cursorId,
+						};
 					} catch (error) {
 						console.error("Invalid cursor format:", error);
 					}
@@ -115,7 +133,8 @@ export const getProjectsByUserId = createServerFn({ method: "GET" })
 				// Use cursor data if available, otherwise use provided params
 				const finalOrder = cursorData?.order || order;
 				const finalDirection = cursorData?.direction || direction;
-				const orderField = orderFieldMap[finalOrder as keyof typeof orderFieldMap];
+				const orderField =
+					orderFieldMap[finalOrder as keyof typeof orderFieldMap];
 
 				// Fetch one extra project to determine if there are more
 				const projects = await db
@@ -131,7 +150,11 @@ export const getProjectsByUserId = createServerFn({ method: "GET" })
 					})
 					.from(project)
 					.where(eq(project.userId, userId))
-					.orderBy(directionMap[finalDirection as keyof typeof directionMap](orderField))
+					.orderBy(
+						directionMap[finalDirection as keyof typeof directionMap](
+							orderField,
+						),
+					)
 					.limit(limit + 1)
 					.offset(offset);
 
@@ -154,15 +177,18 @@ export const getProjectsByUserId = createServerFn({ method: "GET" })
 				let nextCursor: string | undefined;
 				if (hasMore && validatedProjects.length > 0) {
 					const lastProject = validatedProjects[validatedProjects.length - 1];
-					
+
 					const cursorValueMap = {
 						created: lastProject.createdAt.toISOString(),
 						name: lastProject.name,
 						updated: lastProject.updatedAt.toISOString(),
 					} as const;
-					
-					const cursorValue = cursorValueMap[finalOrder as keyof typeof cursorValueMap];
-					nextCursor = Buffer.from(`${finalOrder}:${finalDirection}:${cursorValue}:${lastProject.id}`).toString('base64');
+
+					const cursorValue =
+						cursorValueMap[finalOrder as keyof typeof cursorValueMap];
+					nextCursor = Buffer.from(
+						`${finalOrder}:${finalDirection}:${cursorValue}:${lastProject.id}`,
+					).toString("base64");
 				}
 
 				return { projects: validatedProjects, nextCursor };
@@ -210,9 +236,16 @@ export const getProjectTags = createServerFn({ method: "GET" })
 		}
 	});
 
+/**
+ * Get a single project by ID
+ */
 export const getProjectById = createServerFn({ method: "GET" })
-	.validator((projectId: string) => projectId)
+	.validator((projectId: string) => {
+		console.log("[DEBUG] getProjectById validator input", projectId);
+		return projectId;
+	})
 	.handler(async ({ data: projectId }): Promise<Project | null> => {
+		console.log("[DEBUG] getProjectById handler started with data:", projectId);
 		try {
 			const result = await db
 				.select()

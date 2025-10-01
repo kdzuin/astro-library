@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { useProjectsByUserQuery } from "@/hooks/use-projects-query";
-import { getUserId } from "@/lib/server/auth-server-func";
+import { Button } from "@/components/ui/button.tsx";
+import { useProjectsByUserQuery } from "@/hooks/use-projects-query.ts";
+import { getUserId } from "@/lib/server/auth-server-func.ts";
 import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/projects")({
+export const Route = createFileRoute("/dashboard/projects/$projectId/sessions")({
 	component: ProjectsPage,
 	beforeLoad: async () => {
 		const userId = await getUserId();
@@ -14,12 +14,12 @@ export const Route = createFileRoute("/projects")({
 		if (!context.userId) {
 			throw redirect({
 				to: "/",
-			});
+			})
 		}
 
 		return {
 			userId: context.userId,
-		};
+		}
 	},
 });
 
@@ -40,12 +40,15 @@ function ProjectsPage() {
 			<div className="">
 				{data?.projects.map((project) => (
 					<div key={project.id}>
-						<Link to="/projects/$projectId" params={{ projectId: project.id }}>
+						<Link
+							to="/dashboard/projects/$projectId"
+							params={{ projectId: project.id }}
+						>
 							{project.name}
 						</Link>
 					</div>
 				))}
 			</div>
 		</main>
-	);
+	)
 }

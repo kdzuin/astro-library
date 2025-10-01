@@ -13,7 +13,7 @@ export function ProjectList({ projects }: ProjectList) {
 				<li key={project.id}>
 					<Badge asChild>
 						<Link
-							to={"/projects/$projectId"}
+							to={"/dashboard/projects/$projectId"}
 							params={{ projectId: project.id }}
 						>
 							{project.name}
