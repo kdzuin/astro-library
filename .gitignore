@@ -11,8 +11,8 @@ count.txt
 .vinxi
 todos.json
 .env.local
-.env
 .firebase/logs
+.netlify
 
 *storybook.log
 storybook-static
