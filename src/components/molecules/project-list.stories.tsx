@@ -1,8 +1,8 @@
-import { ProjectList } from "@/components/dashboard/project-list";
+import { ProjectList } from "@/components/molecules/project-list";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 const meta = {
-    title: "Components/Dashboard/Project List",
+    title: "Molecules/Project List",
     component: ProjectList,
     parameters: {
         layout: "padded",

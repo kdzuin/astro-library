@@ -1,25 +1,40 @@
-import { Badge } from "@/components/ui/badge";
+import { EntrySimple } from "@/components/molecules/entry-simple";
+import { EntryWithScale } from "@/components/molecules/entry-with-scale";
 import type { Project } from "@/schemas/project";
 import { Link } from "@tanstack/react-router";
 
 interface ProjectList {
     projects: Project[];
+    variant?: "simple" | "detailed";
 }
 
-export function ProjectList({ projects }: ProjectList) {
+export function ProjectList({ projects, variant }: ProjectList) {
+    if (variant === "simple") {
+        return (
+            <ul className="flex gap-2 flex-wrap">
+                {projects.map((item) => (
+                    <Link
+                        to="/dashboard/projects/$projectId"
+                        params={{ projectId: item.id }}
+                        key={item.id}
+                    >
+                        <EntrySimple title={item.name} />
+                    </Link>
+                ))}
+            </ul>
+        );
+    }
+
     return (
-        <ul className="flex flex-wrap gap-x-1.5 gap-y-1">
-            {projects.map((project) => (
-                <li key={project.id}>
-                    <Badge asChild>
-                        <Link
-                            to={"/dashboard/projects/$projectId"}
-                            params={{ projectId: project.id }}
-                        >
-                            {project.name}
-                        </Link>
-                    </Badge>
-                </li>
+        <ul className="grid auto-rows-auto gap-4 grid-cols-[repeat(auto-fill,minmax(320px,1fr))]">
+            {projects.map((item) => (
+                <Link
+                    to="/dashboard/projects/$projectId"
+                    params={{ projectId: item.id }}
+                    key={item.id}
+                >
+                    <EntryWithScale title={item.name} />
+                </Link>
             ))}
         </ul>
     );

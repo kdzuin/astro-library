@@ -9,18 +9,24 @@ import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 
 const panelColors = [
-    "color-mix(in oklch, var(--color-pink-700), transparent 90%)",
+    "color-mix(in oklch, var(--color-pink-700), transparent 80%)",
     "color-mix(in oklch, var(--color-pink-700), transparent 60%)",
     "color-mix(in oklch, var(--color-pink-700), transparent 40%)",
     "color-mix(in oklch, var(--color-pink-700), transparent 20%)",
     "color-mix(in oklch, var(--color-pink-700), transparent 0%)",
 ];
 
+const defaultColor =
+    "color-mix(in oklch, var(--color-pink-700), transparent 90%)";
+
 const normalize = (value: number, min: number, max: number) =>
     (value - min) / (max - min);
 
 const mapNormalisedToColor = (value: number) => {
     const normalizedValue = normalize(value, 0, 1);
+    if (value === 0) {
+        return defaultColor;
+    }
     const index = Math.floor(normalizedValue * (panelColors.length - 1));
     return panelColors[index];
 };

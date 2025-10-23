@@ -73,6 +73,7 @@ export function DashboardPage({ userId }: DashboardPageProps) {
                         {projectsQuery.isSuccess ? (
                             <ProjectList
                                 projects={projectsQuery.data.projects || []}
+                                variant="simple"
                             />
                         ) : null}
                     </CardContent>
