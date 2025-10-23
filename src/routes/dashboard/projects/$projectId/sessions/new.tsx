@@ -102,7 +102,7 @@ function RouteComponent() {
                     </Link>
                 </Button>
                 <div className="text-3xl md:text-4xl font-bold">
-                    Add New Project
+                    Add New Session
                 </div>
             </div>
             <div>

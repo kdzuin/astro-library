@@ -1,7 +1,24 @@
+import { ProjectList } from "@/components/molecules/project-list";
 import { Button } from "@/components/ui/button.tsx";
 import { useProjectsByUserQuery } from "@/hooks/use-projects-query.ts";
+import type { UseQueryResult } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, LucidePlus } from "lucide-react";
+
+function RefetchBlock({ query }: { query: UseQueryResult }) {
+    return (
+        <div>
+            <p>
+                Problem getting your data. Likely, it's the network connection.
+            </p>
+            <div>
+                <Button type="button" onClick={() => query.refetch()}>
+                    Try again
+                </Button>
+            </div>
+        </div>
+    );
+}
 
 export function AllProjectsByUserPage({ userId }: { userId: string }) {
     const projectsQuery = useProjectsByUserQuery(userId);
@@ -27,32 +44,10 @@ export function AllProjectsByUserPage({ userId }: { userId: string }) {
 
             {projectsQuery.isPending ? <div>Loading...</div> : null}
             {projectsQuery.isError ? (
-                <div>
-                    Problem getting your projects. Likely, it's the network
-                    connection. Please{" "}
-                    <button
-                        type="button"
-                        className="underline cursor-pointer"
-                        onClick={() => projectsQuery.refetch()}
-                    >
-                        try again
-                    </button>
-                    .
-                </div>
+                <RefetchBlock query={projectsQuery} />
             ) : null}
             {projectsQuery.isSuccess ? (
-                <div className="">
-                    {projectsQuery.data.projects.map((project) => (
-                        <div key={project.id}>
-                            <Link
-                                to="/dashboard/projects/$projectId"
-                                params={{ projectId: project.id }}
-                            >
-                                {project.name}
-                            </Link>
-                        </div>
-                    ))}
-                </div>
+                <ProjectList projects={projectsQuery.data.projects} />
             ) : null}
         </main>
     );

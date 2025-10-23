@@ -1,8 +1,16 @@
 import { Button } from "@/components/ui/button.tsx";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { useProjectByIdQuery } from "@/hooks/use-projects-query.ts";
 import { useSessionsByProjectQuery } from "@/hooks/use-sessions-query.ts";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LucidePlus, LucideSearch } from "lucide-react";
 
 export function ProjectByIdPage({ projectId }: { projectId: string }) {
     const { data: projectData } = useProjectByIdQuery(projectId);
@@ -20,22 +28,47 @@ export function ProjectByIdPage({ projectId }: { projectId: string }) {
                     {projectData?.name}
                 </div>
             </div>
-            <h2>Project</h2>
-            <div>{projectId}</div>
-            <div>
-                Project Data:
-                <pre>{JSON.stringify(projectData, null, 2)}</pre>
-            </div>
-            <div>
-                <Link
-                    to={"/dashboard/projects/$projectId/sessions"}
-                    params={{
-                        projectId,
-                    }}
-                >
-                    Sessions:
-                </Link>
-                <pre>{JSON.stringify(projectSessions, null, 2)}</pre>
+
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Project Info</CardTitle>
+                        <CardDescription>
+                            Details for the project (meta information)
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <pre>{JSON.stringify(projectData, null, 2)}</pre>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Project Sessions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <pre>{JSON.stringify(projectSessions, null, 2)}</pre>
+                    </CardContent>
+                    <CardFooter className="border-t flex gap-2">
+                        <Button asChild size="small">
+                            <Link
+                                to={"/dashboard/projects/$projectId/sessions"}
+                                params={{ projectId }}
+                            >
+                                <LucideSearch />
+                                Open all session
+                            </Link>
+                        </Button>
+                        <Button asChild size="small">
+                            <Link
+                                to="/dashboard/projects/$projectId/sessions/new"
+                                params={{ projectId }}
+                            >
+                                <LucidePlus />
+                                Add new session
+                            </Link>
+                        </Button>
+                    </CardFooter>
+                </Card>
             </div>
         </main>
     );

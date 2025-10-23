@@ -1,5 +1,5 @@
 import { HeatMap } from "@/components/dashboard/heat-map";
-import { ProjectList } from "@/components/dashboard/project-list";
+import { ProjectList } from "@/components/molecules/project-list";
 import { Button } from "@/components/ui/button";
 import {
     Card,
