@@ -6,25 +6,25 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { env } from "@/env";
 
 export const auth = betterAuth({
-	database: drizzleAdapter(db, {
-		provider: "pg",
-		schema,
-	}),
-	socialProviders: {
-		google: {
-			clientId: env.GOOGLE_CLIENT_ID,
-			clientSecret: env.GOOGLE_CLIENT_SECRET,
-		},
-	},
-	session: {
-		cookieCache: {
-			enabled: true,
-			maxAge: 5 * 60, // Cache duration in seconds
-		},
-	},
-	trustedOrigins: [
-		"https://astro-library.dzuin.me",
-		"https://astro-library.netlify.app",
-		import.meta.env.DEV ? "http://localhost:3000" : "",
-	].filter(Boolean),
+    database: drizzleAdapter(db, {
+        provider: "pg",
+        schema,
+    }),
+    socialProviders: {
+        google: {
+            clientId: env.GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
+        },
+    },
+    session: {
+        cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60, // Cache duration in seconds
+        },
+    },
+    trustedOrigins: [
+        "https://astro-library.dzuin.me",
+        "https://astro-library.netlify.app",
+        import.meta.env.DEV ? "http://localhost:3000" : "",
+    ].filter(Boolean),
 });

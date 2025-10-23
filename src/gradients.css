@@ -1,21 +1,21 @@
 @tailwind utilities;
 
 @utility bg-gradient-brand {
-	@apply bg-gradient-to-br from-purple-950 to-slate-950;
+    @apply bg-gradient-to-br from-purple-950 to-slate-950;
 }
 
 @utility bg-gradient-blue-purple {
-	@apply bg-gradient-to-r from-blue-500 to-purple-500;
+    @apply bg-gradient-to-r from-blue-500 to-purple-500;
 }
 
 @utility bg-gradient-purple-pink {
-	@apply bg-gradient-to-r from-purple-500 to-pink-500;
+    @apply bg-gradient-to-r from-purple-500 to-pink-500;
 }
 
 @utility bg-gradient-green-blue {
-	@apply bg-gradient-to-r from-green-500 to-blue-500;
+    @apply bg-gradient-to-r from-green-500 to-blue-500;
 }
 
 @utility bg-gradient-yellow-orange {
-	@apply bg-gradient-to-r from-yellow-500 to-orange-500;
+    @apply bg-gradient-to-r from-yellow-500 to-orange-500;
 }

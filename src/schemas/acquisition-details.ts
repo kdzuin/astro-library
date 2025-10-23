@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const acquisitionDetailsSchema = z.object({
     id: z.string(),
@@ -26,5 +26,9 @@ export const updateAcquisitionDetailsSchema = acquisitionDetailsSchema.omit({
 });
 
 export type AcquisitionDetails = z.infer<typeof acquisitionDetailsSchema>;
-export type CreateAcquisitionDetails = z.infer<typeof createAcquisitionDetailsSchema>;
-export type UpdateAcquisitionDetails = z.infer<typeof updateAcquisitionDetailsSchema>;
+export type CreateAcquisitionDetails = z.infer<
+    typeof createAcquisitionDetailsSchema
+>;
+export type UpdateAcquisitionDetails = z.infer<
+    typeof updateAcquisitionDetailsSchema
+>;
