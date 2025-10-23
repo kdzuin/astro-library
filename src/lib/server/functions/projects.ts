@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { project, projectTag, tag } from "@/db/schema";
+import { getUserId } from "@/lib/server/auth-server-func.ts";
 import {
 	type Project,
 	createProjectSchema,
@@ -28,21 +29,23 @@ const directionMap = {
  * Create a new project
  */
 export const createProject = createServerFn({ method: "POST" })
-	.validator((data: { name: string; userId: string; description?: string }) => {
-		console.log("[DEBUG] createProject validator input:", data);
+	.validator(async (data: { name: string; description?: string }) => {
+		const userId = await getUserId();
+
+		if (!userId) {
+			throw new Error("User not authenticated");
+		}
+
 		const validated = createProjectSchema.safeParse({
 			id: crypto.randomUUID(),
-			userId: data.userId,
+			userId,
 			name: data.name,
 			description: data.description || null,
 			status: "planning" as const,
 			totalExposureTime: null,
 		});
 		if (!validated.success) {
-			console.error(
-				"[DEBUG] Project validation failed:",
-				validated.error.issues,
-			);
+			console.error(validated.error.issues);
 			throw new Error(
 				`Failed to create project: validation error - ${JSON.stringify(validated.error.issues)}`,
 			);
@@ -51,19 +54,15 @@ export const createProject = createServerFn({ method: "POST" })
 		return validated.data;
 	})
 	.handler(async ({ data }): Promise<Project> => {
-		console.log("[DEBUG] createProject handler started with data:", data);
-
 		try {
-			// Insert into database
 			const [insertedProject] = await db
 				.insert(project)
-				.values(data)
+				.values(await data)
 				.returning();
 
 			const dbResponse = projectSchema.safeParse(insertedProject);
 
 			if (dbResponse.success) {
-				console.log("[DEBUG] Project created successfully:", insertedProject);
 				return dbResponse.data;
 			}
 
@@ -88,53 +87,16 @@ export const getProjectsByUserId = createServerFn({ method: "GET" })
 	.validator(
 		(data: {
 			userId: string;
-			limit?: number;
-			offset?: number;
 			order?: "updated" | "created" | "name";
 			direction?: "asc" | "desc";
-			cursor?: string;
 		}) => data,
 	)
 	.handler(
 		async ({ data }): Promise<{ projects: Project[]; nextCursor?: string }> => {
 			try {
-				const {
-					userId,
-					limit = 50,
-					offset = 0,
-					order = "updated",
-					direction = "desc",
-					cursor,
-				} = data;
+				const { userId, order = "updated", direction = "desc" } = data;
 
-				// Parse cursor if provided
-				let cursorData: {
-					order: string;
-					direction: string;
-					value: string;
-					id: string;
-				} | null = null;
-				if (cursor) {
-					try {
-						const decoded = Buffer.from(cursor, "base64").toString("utf-8");
-						const [cursorOrder, cursorDirection, cursorValue, cursorId] =
-							decoded.split(":");
-						cursorData = {
-							order: cursorOrder,
-							direction: cursorDirection,
-							value: cursorValue,
-							id: cursorId,
-						};
-					} catch (error) {
-						console.error("Invalid cursor format:", error);
-					}
-				}
-
-				// Use cursor data if available, otherwise use provided params
-				const finalOrder = cursorData?.order || order;
-				const finalDirection = cursorData?.direction || direction;
-				const orderField =
-					orderFieldMap[finalOrder as keyof typeof orderFieldMap];
+				const orderField = orderFieldMap[order as keyof typeof orderFieldMap];
 
 				// Fetch one extra project to determine if there are more
 				const projects = await db
@@ -151,20 +113,12 @@ export const getProjectsByUserId = createServerFn({ method: "GET" })
 					.from(project)
 					.where(eq(project.userId, userId))
 					.orderBy(
-						directionMap[finalDirection as keyof typeof directionMap](
-							orderField,
-						),
-					)
-					.limit(limit + 1)
-					.offset(offset);
-
-				// Determine if there are more projects
-				const hasMore = projects.length > limit;
-				const projectsToReturn = hasMore ? projects.slice(0, limit) : projects;
+						directionMap[direction as keyof typeof directionMap](orderField),
+					);
 
 				// Validate each project
 				const validatedProjects: Project[] = [];
-				for (const proj of projectsToReturn) {
+				for (const proj of projects) {
 					const result = projectSchema.safeParse(proj);
 					if (result.success) {
 						validatedProjects.push(result.data);
@@ -173,25 +127,7 @@ export const getProjectsByUserId = createServerFn({ method: "GET" })
 					}
 				}
 
-				// Generate cursor for next page if there are more projects
-				let nextCursor: string | undefined;
-				if (hasMore && validatedProjects.length > 0) {
-					const lastProject = validatedProjects[validatedProjects.length - 1];
-
-					const cursorValueMap = {
-						created: lastProject.createdAt.toISOString(),
-						name: lastProject.name,
-						updated: lastProject.updatedAt.toISOString(),
-					} as const;
-
-					const cursorValue =
-						cursorValueMap[finalOrder as keyof typeof cursorValueMap];
-					nextCursor = Buffer.from(
-						`${finalOrder}:${finalDirection}:${cursorValue}:${lastProject.id}`,
-					).toString("base64");
-				}
-
-				return { projects: validatedProjects, nextCursor };
+				return { projects: validatedProjects };
 			} catch (error) {
 				console.error("Error fetching projects:", error);
 				throw new Error("Failed to fetch projects");
@@ -241,11 +177,9 @@ export const getProjectTags = createServerFn({ method: "GET" })
  */
 export const getProjectById = createServerFn({ method: "GET" })
 	.validator((projectId: string) => {
-		console.log("[DEBUG] getProjectById validator input", projectId);
 		return projectId;
 	})
 	.handler(async ({ data: projectId }): Promise<Project | null> => {
-		console.log("[DEBUG] getProjectById handler started with data:", projectId);
 		try {
 			const result = await db
 				.select()

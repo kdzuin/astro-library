@@ -9,16 +9,31 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import type { Project } from "@/schemas/project";
+import { useProjectsByUserQuery } from "@/hooks/use-projects-query.ts";
+import { useSessionsByUserQuery } from "@/hooks/use-sessions-query.ts";
 import { Link } from "@tanstack/react-router";
 import { LucideArrowLeft, LucidePlus, LucideSearch } from "lucide-react";
+import { useMemo } from "react";
 
 interface DashboardPageProps {
-	projects?: Project[];
-	isLoading?: boolean;
+	userId: string;
 }
 
-export function DashboardPage({ projects, isLoading }: DashboardPageProps) {
+export function DashboardPage({ userId }: DashboardPageProps) {
+	const projectsQuery = useProjectsByUserQuery(userId);
+	const sessionsQuery = useSessionsByUserQuery(userId);
+
+	const preparedHeatmapData = useMemo(() => {
+		if (sessionsQuery.isSuccess) {
+			return sessionsQuery.data.sessions.map((session) => ({
+				date: session.date,
+				value: Math.floor(Math.random() * 100) + 1,
+			}));
+		}
+
+		return [];
+	}, [sessionsQuery.data, sessionsQuery.isSuccess]);
+
 	return (
 		<main className="w-full px-4 sm:px-6 lg:px-8 py-10 space-y-4">
 			<div className="flex items-center gap-4">
@@ -30,12 +45,6 @@ export function DashboardPage({ projects, isLoading }: DashboardPageProps) {
 				<div className="text-3xl md:text-4xl font-bold">Dashboard</div>
 			</div>
 
-			{isLoading && !projects?.length ? (
-				<div className="flex justify-start py-12 text-2xl text-white/50">
-					Loading...
-				</div>
-			) : null}
-
 			<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 				<Card>
 					<CardHeader>
@@ -46,15 +55,7 @@ export function DashboardPage({ projects, isLoading }: DashboardPageProps) {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<HeatMap
-							data={[
-								{ date: "2025-08-04", value: 4 },
-								{ date: "2025-08-05", value: 100 },
-								{ date: "2025-09-01", value: 200 },
-								{ date: "2025-09-12", value: 100 },
-							]}
-							numberOfWeeks={26}
-						/>
+						<HeatMap data={preparedHeatmapData} numberOfWeeks={26} />
 					</CardContent>
 				</Card>
 				<Card>
@@ -65,7 +66,9 @@ export function DashboardPage({ projects, isLoading }: DashboardPageProps) {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ProjectList projects={projects || []} />
+						{projectsQuery.isSuccess ? (
+							<ProjectList projects={projectsQuery.data.projects || []} />
+						) : null}
 					</CardContent>
 					<CardFooter className="border-t flex gap-2">
 						<Button asChild size="small">

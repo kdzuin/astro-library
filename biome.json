@@ -22,7 +22,10 @@
 		"rules": {
 			"recommended": true,
 			"suspicious": {
-				"noArrayIndexKey": "info"
+				"noArrayIndexKey": "off"
+			},
+			"correctness": {
+				"noChildrenProp": "off"
 			}
 		}
 	},

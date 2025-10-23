@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button.tsx";
 import { Field } from "@/components/ui/field.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { Textarea } from "@/components/ui/textarea.tsx";
-import { projectQueryKeys } from "@/hooks/use-projects-query.ts";
+import { sessionsQueryKeys } from "@/hooks/use-sessions-query.ts";
 import { getUserId } from "@/lib/server/auth-server-func.ts";
-import { createProject } from "@/lib/server/functions/projects.ts";
-import type { Project } from "@/schemas/project.ts";
+import { createSession } from "@/lib/server/functions/sessions.ts";
 import { revalidateLogic, useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -20,17 +18,19 @@ import { z } from "zod";
 import type { ZodIssue } from "zod/v3";
 
 const formValidation = z.object({
-	name: z.string().trim().min(1, "Project name is required"),
+	date: z.string().trim().min(1, "Session date is required"),
 	description: z.string(),
 });
 
 type FormSchema = z.infer<typeof formValidation>;
 
-export const Route = createFileRoute("/dashboard/projects/new")({
+export const Route = createFileRoute(
+	"/dashboard/projects/$projectId/sessions/new",
+)({
 	component: RouteComponent,
-	beforeLoad: async () => {
+	beforeLoad: async ({ params }) => {
 		const userId = await getUserId();
-		return { userId };
+		return { userId, projectId: params.projectId };
 	},
 	loader: async ({ context }) => {
 		if (!context.userId) {
@@ -41,6 +41,7 @@ export const Route = createFileRoute("/dashboard/projects/new")({
 
 		return {
 			userId: context.userId,
+			projectId: context.projectId,
 		};
 	},
 });
@@ -50,7 +51,7 @@ function concatError(errors: ZodIssue[]) {
 }
 
 function RouteComponent() {
-	const { userId } = Route.useLoaderData();
+	const { userId, projectId } = Route.useLoaderData();
 
 	const [submissionError, setSubmissionError] = useState<string | null>(null);
 
@@ -58,24 +59,23 @@ function RouteComponent() {
 	const queryClient = useQueryClient();
 
 	const mutation = useMutation({
-		mutationFn: async (values: FormSchema) =>
-			await createProject({ data: values }),
-		onSuccess: (data: Project) => {
-			queryClient.setQueryData(projectQueryKeys.byId(data.id), data);
-
+		mutationFn: async (values: FormSchema) => {
+			return await createSession({ data: { ...values, userId, projectId } });
+		},
+		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: projectQueryKeys.byUser(userId),
+				queryKey: sessionsQueryKeys.byProject(projectId),
 			});
 
 			navigate({
-				to: "/dashboard/projects/$projectId",
-				params: { projectId: data.id },
+				to: "/dashboard/projects/$projectId/sessions",
+				params: { projectId },
 			});
 		},
 	});
 	const form = useForm({
 		defaultValues: {
-			name: "",
+			date: "",
 			description: "",
 		} as FormSchema,
 		validators: {
@@ -111,11 +111,11 @@ function RouteComponent() {
 					className={"grid gap-4"}
 				>
 					<form.Field
-						name={"name"}
+						name={"date"}
 						children={(field) => (
 							<Field
 								id={field.name}
-								label={"Project Name:"}
+								label={"Session Date:"}
 								component={
 									<Input
 										id={field.name}
@@ -139,9 +139,9 @@ function RouteComponent() {
 						children={(field) => (
 							<Field
 								id={field.name}
-								label={"Description:"}
+								label={"Session Description:"}
 								component={
-									<Textarea
+									<Input
 										id={field.name}
 										name={field.name}
 										value={field.state.value}

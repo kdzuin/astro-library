@@ -15,8 +15,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardProjectsIndexRouteImport } from './routes/dashboard/projects/index'
 import { Route as DashboardProjectsNewRouteImport } from './routes/dashboard/projects/new'
-import { Route as DashboardProjectsProjectIdRouteImport } from './routes/dashboard/projects/$projectId'
-import { Route as DashboardProjectsProjectIdSessionsRouteImport } from './routes/dashboard/projects/$projectId.sessions'
+import { Route as DashboardProjectsProjectIdIndexRouteImport } from './routes/dashboard/projects/$projectId/index'
+import { Route as DashboardProjectsProjectIdSessionsIndexRouteImport } from './routes/dashboard/projects/$projectId/sessions/index'
+import { Route as DashboardProjectsProjectIdSessionsNewRouteImport } from './routes/dashboard/projects/$projectId/sessions/new'
+import { Route as DashboardProjectsProjectIdSessionsSessionIdRouteImport } from './routes/dashboard/projects/$projectId/sessions/$sessionId'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
 
 const rootServerRouteImport = createServerRootRoute()
@@ -41,17 +43,29 @@ const DashboardProjectsNewRoute = DashboardProjectsNewRouteImport.update({
   path: '/dashboard/projects/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardProjectsProjectIdRoute =
-  DashboardProjectsProjectIdRouteImport.update({
-    id: '/dashboard/projects/$projectId',
-    path: '/dashboard/projects/$projectId',
+const DashboardProjectsProjectIdIndexRoute =
+  DashboardProjectsProjectIdIndexRouteImport.update({
+    id: '/dashboard/projects/$projectId/',
+    path: '/dashboard/projects/$projectId/',
     getParentRoute: () => rootRouteImport,
   } as any)
-const DashboardProjectsProjectIdSessionsRoute =
-  DashboardProjectsProjectIdSessionsRouteImport.update({
-    id: '/sessions',
-    path: '/sessions',
-    getParentRoute: () => DashboardProjectsProjectIdRoute,
+const DashboardProjectsProjectIdSessionsIndexRoute =
+  DashboardProjectsProjectIdSessionsIndexRouteImport.update({
+    id: '/dashboard/projects/$projectId/sessions/',
+    path: '/dashboard/projects/$projectId/sessions/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DashboardProjectsProjectIdSessionsNewRoute =
+  DashboardProjectsProjectIdSessionsNewRouteImport.update({
+    id: '/dashboard/projects/$projectId/sessions/new',
+    path: '/dashboard/projects/$projectId/sessions/new',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DashboardProjectsProjectIdSessionsSessionIdRoute =
+  DashboardProjectsProjectIdSessionsSessionIdRouteImport.update({
+    id: '/dashboard/projects/$projectId/sessions/$sessionId',
+    path: '/dashboard/projects/$projectId/sessions/$sessionId',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
   id: '/api/auth/$',
@@ -62,61 +76,76 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/dashboard/projects/$projectId': typeof DashboardProjectsProjectIdRouteWithChildren
   '/dashboard/projects/new': typeof DashboardProjectsNewRoute
   '/dashboard/projects': typeof DashboardProjectsIndexRoute
-  '/dashboard/projects/$projectId/sessions': typeof DashboardProjectsProjectIdSessionsRoute
+  '/dashboard/projects/$projectId': typeof DashboardProjectsProjectIdIndexRoute
+  '/dashboard/projects/$projectId/sessions/$sessionId': typeof DashboardProjectsProjectIdSessionsSessionIdRoute
+  '/dashboard/projects/$projectId/sessions/new': typeof DashboardProjectsProjectIdSessionsNewRoute
+  '/dashboard/projects/$projectId/sessions': typeof DashboardProjectsProjectIdSessionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/dashboard/projects/$projectId': typeof DashboardProjectsProjectIdRouteWithChildren
   '/dashboard/projects/new': typeof DashboardProjectsNewRoute
   '/dashboard/projects': typeof DashboardProjectsIndexRoute
-  '/dashboard/projects/$projectId/sessions': typeof DashboardProjectsProjectIdSessionsRoute
+  '/dashboard/projects/$projectId': typeof DashboardProjectsProjectIdIndexRoute
+  '/dashboard/projects/$projectId/sessions/$sessionId': typeof DashboardProjectsProjectIdSessionsSessionIdRoute
+  '/dashboard/projects/$projectId/sessions/new': typeof DashboardProjectsProjectIdSessionsNewRoute
+  '/dashboard/projects/$projectId/sessions': typeof DashboardProjectsProjectIdSessionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/projects/$projectId': typeof DashboardProjectsProjectIdRouteWithChildren
   '/dashboard/projects/new': typeof DashboardProjectsNewRoute
   '/dashboard/projects/': typeof DashboardProjectsIndexRoute
-  '/dashboard/projects/$projectId/sessions': typeof DashboardProjectsProjectIdSessionsRoute
+  '/dashboard/projects/$projectId/': typeof DashboardProjectsProjectIdIndexRoute
+  '/dashboard/projects/$projectId/sessions/$sessionId': typeof DashboardProjectsProjectIdSessionsSessionIdRoute
+  '/dashboard/projects/$projectId/sessions/new': typeof DashboardProjectsProjectIdSessionsNewRoute
+  '/dashboard/projects/$projectId/sessions/': typeof DashboardProjectsProjectIdSessionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/dashboard/projects/$projectId'
     | '/dashboard/projects/new'
     | '/dashboard/projects'
+    | '/dashboard/projects/$projectId'
+    | '/dashboard/projects/$projectId/sessions/$sessionId'
+    | '/dashboard/projects/$projectId/sessions/new'
     | '/dashboard/projects/$projectId/sessions'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
-    | '/dashboard/projects/$projectId'
     | '/dashboard/projects/new'
     | '/dashboard/projects'
+    | '/dashboard/projects/$projectId'
+    | '/dashboard/projects/$projectId/sessions/$sessionId'
+    | '/dashboard/projects/$projectId/sessions/new'
     | '/dashboard/projects/$projectId/sessions'
   id:
     | '__root__'
     | '/'
     | '/dashboard/'
-    | '/dashboard/projects/$projectId'
     | '/dashboard/projects/new'
     | '/dashboard/projects/'
-    | '/dashboard/projects/$projectId/sessions'
+    | '/dashboard/projects/$projectId/'
+    | '/dashboard/projects/$projectId/sessions/$sessionId'
+    | '/dashboard/projects/$projectId/sessions/new'
+    | '/dashboard/projects/$projectId/sessions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardProjectsProjectIdRoute: typeof DashboardProjectsProjectIdRouteWithChildren
   DashboardProjectsNewRoute: typeof DashboardProjectsNewRoute
   DashboardProjectsIndexRoute: typeof DashboardProjectsIndexRoute
+  DashboardProjectsProjectIdIndexRoute: typeof DashboardProjectsProjectIdIndexRoute
+  DashboardProjectsProjectIdSessionsSessionIdRoute: typeof DashboardProjectsProjectIdSessionsSessionIdRoute
+  DashboardProjectsProjectIdSessionsNewRoute: typeof DashboardProjectsProjectIdSessionsNewRoute
+  DashboardProjectsProjectIdSessionsIndexRoute: typeof DashboardProjectsProjectIdSessionsIndexRoute
 }
 export interface FileServerRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatServerRoute
@@ -170,19 +199,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardProjectsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/projects/$projectId': {
-      id: '/dashboard/projects/$projectId'
+    '/dashboard/projects/$projectId/': {
+      id: '/dashboard/projects/$projectId/'
       path: '/dashboard/projects/$projectId'
       fullPath: '/dashboard/projects/$projectId'
-      preLoaderRoute: typeof DashboardProjectsProjectIdRouteImport
+      preLoaderRoute: typeof DashboardProjectsProjectIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/projects/$projectId/sessions': {
-      id: '/dashboard/projects/$projectId/sessions'
-      path: '/sessions'
+    '/dashboard/projects/$projectId/sessions/': {
+      id: '/dashboard/projects/$projectId/sessions/'
+      path: '/dashboard/projects/$projectId/sessions'
       fullPath: '/dashboard/projects/$projectId/sessions'
-      preLoaderRoute: typeof DashboardProjectsProjectIdSessionsRouteImport
-      parentRoute: typeof DashboardProjectsProjectIdRoute
+      preLoaderRoute: typeof DashboardProjectsProjectIdSessionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/projects/$projectId/sessions/new': {
+      id: '/dashboard/projects/$projectId/sessions/new'
+      path: '/dashboard/projects/$projectId/sessions/new'
+      fullPath: '/dashboard/projects/$projectId/sessions/new'
+      preLoaderRoute: typeof DashboardProjectsProjectIdSessionsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/projects/$projectId/sessions/$sessionId': {
+      id: '/dashboard/projects/$projectId/sessions/$sessionId'
+      path: '/dashboard/projects/$projectId/sessions/$sessionId'
+      fullPath: '/dashboard/projects/$projectId/sessions/$sessionId'
+      preLoaderRoute: typeof DashboardProjectsProjectIdSessionsSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -198,27 +241,18 @@ declare module '@tanstack/react-start/server' {
   }
 }
 
-interface DashboardProjectsProjectIdRouteChildren {
-  DashboardProjectsProjectIdSessionsRoute: typeof DashboardProjectsProjectIdSessionsRoute
-}
-
-const DashboardProjectsProjectIdRouteChildren: DashboardProjectsProjectIdRouteChildren =
-  {
-    DashboardProjectsProjectIdSessionsRoute:
-      DashboardProjectsProjectIdSessionsRoute,
-  }
-
-const DashboardProjectsProjectIdRouteWithChildren =
-  DashboardProjectsProjectIdRoute._addFileChildren(
-    DashboardProjectsProjectIdRouteChildren,
-  )
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
-  DashboardProjectsProjectIdRoute: DashboardProjectsProjectIdRouteWithChildren,
   DashboardProjectsNewRoute: DashboardProjectsNewRoute,
   DashboardProjectsIndexRoute: DashboardProjectsIndexRoute,
+  DashboardProjectsProjectIdIndexRoute: DashboardProjectsProjectIdIndexRoute,
+  DashboardProjectsProjectIdSessionsSessionIdRoute:
+    DashboardProjectsProjectIdSessionsSessionIdRoute,
+  DashboardProjectsProjectIdSessionsNewRoute:
+    DashboardProjectsProjectIdSessionsNewRoute,
+  DashboardProjectsProjectIdSessionsIndexRoute:
+    DashboardProjectsProjectIdSessionsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

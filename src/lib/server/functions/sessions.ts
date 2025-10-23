@@ -6,7 +6,7 @@ import {
 	sessionSchema,
 } from "@/schemas/session.ts";
 import { createServerFn } from "@tanstack/react-start";
-import { asc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export const createSession = createServerFn({ method: "POST" })
 	.validator(
@@ -16,7 +16,6 @@ export const createSession = createServerFn({ method: "POST" })
 			date: string;
 			description: string;
 		}) => {
-			console.log("[DEBUG] createSession validator input", data);
 			const validated = createSessionSchema.safeParse({
 				id: crypto.randomUUID(),
 				projectId: data.projectId,
@@ -25,10 +24,7 @@ export const createSession = createServerFn({ method: "POST" })
 				description: data.description,
 			});
 			if (!validated.success) {
-				console.error(
-					"[DEBUG] Session validation failed:",
-					validated.error.issues,
-				);
+				console.error(validated.error.issues);
 				throw new Error(
 					`Failed to create session: validation error - ${JSON.stringify(validated.error.issues)}`,
 				);
@@ -37,8 +33,6 @@ export const createSession = createServerFn({ method: "POST" })
 		},
 	)
 	.handler(async ({ data }): Promise<Session> => {
-		console.log("[DEBUG] createSession handler started with data:", data);
-
 		try {
 			const [insertedSession] = await db
 				.insert(session)
@@ -48,7 +42,6 @@ export const createSession = createServerFn({ method: "POST" })
 			const dbResponse = sessionSchema.safeParse(insertedSession);
 
 			if (dbResponse.success) {
-				console.log("[DEBUG] Session created successfully:", dbResponse.data);
 				return dbResponse.data;
 			}
 
@@ -66,7 +59,7 @@ export const createSession = createServerFn({ method: "POST" })
 		}
 	});
 
-export const getSessionByProjectId = createServerFn({ method: "GET" })
+export const getSessionsByProjectId = createServerFn({ method: "GET" })
 	.validator((projectId: string) => {
 		return projectId;
 	})
@@ -75,6 +68,7 @@ export const getSessionByProjectId = createServerFn({ method: "GET" })
 			const sessions = await db
 				.select({
 					id: session.id,
+					userId: session.userId,
 					projectId: session.projectId,
 					description: session.description,
 					date: session.date,
@@ -83,7 +77,7 @@ export const getSessionByProjectId = createServerFn({ method: "GET" })
 				})
 				.from(session)
 				.where(eq(session.projectId, projectId))
-				.orderBy(asc(session.date));
+				.orderBy(desc(session.date));
 
 			const validatedSessions: Session[] = [];
 
@@ -99,6 +93,87 @@ export const getSessionByProjectId = createServerFn({ method: "GET" })
 			return {
 				sessions: validatedSessions,
 			};
+		} catch (error) {
+			console.error("Error fetching sessions by project:", error);
+			throw new Error("Failed to fetch sessions by project id");
+		}
+	});
+
+export const getSessionsByUserId = createServerFn({ method: "GET" })
+	.validator((userId: string) => {
+		return userId;
+	})
+	.handler(async ({ data: userId }): Promise<{ sessions: Session[] }> => {
+		try {
+			const sessions = await db
+				.select({
+					id: session.id,
+					userId: session.userId,
+					projectId: session.projectId,
+					description: session.description,
+					date: session.date,
+					createdAt: session.createdAt,
+					updatedAt: session.updatedAt,
+				})
+				.from(session)
+				.where(eq(session.userId, userId))
+				.orderBy(desc(session.date));
+
+			const validatedSessions: Session[] = [];
+
+			for (const sessionItem of sessions) {
+				const result = sessionSchema.safeParse(sessionItem);
+				if (result.success) {
+					validatedSessions.push(result.data);
+				} else {
+					console.error("Session validation failed:", result.error);
+				}
+			}
+
+			return {
+				sessions: validatedSessions,
+			};
+		} catch (error) {
+			console.error("Error fetching sessions by project:", error);
+			throw new Error("Failed to fetch sessions by project id");
+		}
+	});
+
+export const getSessionById = createServerFn({ method: "GET" })
+	.validator((sessionId: string) => {
+		return sessionId;
+	})
+	.handler(async ({ data: sessionId }): Promise<Session> => {
+		try {
+			const sessions = await db
+				.select({
+					id: session.id,
+					userId: session.userId,
+					projectId: session.projectId,
+					description: session.description,
+					date: session.date,
+					createdAt: session.createdAt,
+					updatedAt: session.updatedAt,
+				})
+				.from(session)
+				.where(eq(session.id, sessionId));
+
+			const validatedSessions: Session[] = [];
+
+			if (!sessions.length) {
+				throw new Error("Session not found");
+			}
+
+			for (const sessionItem of sessions) {
+				const result = sessionSchema.safeParse(sessionItem);
+				if (result.success) {
+					validatedSessions.push(result.data);
+				} else {
+					console.error("Session validation failed:", result.error);
+				}
+			}
+
+			return validatedSessions[0];
 		} catch (error) {
 			console.error("Error fetching sessions by project:", error);
 			throw new Error("Failed to fetch sessions by project id");
