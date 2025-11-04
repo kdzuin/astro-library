@@ -96,9 +96,9 @@ function RouteComponent() {
     return (
         <main className="w-full min-h-screen bg-brand-gradient text-white/80  px-4 sm:px-6 lg:px-8 py-10 space-y-4">
             <div className="flex items-center gap-4">
-                <Button asChild variant="modest">
+                <Button asChild>
                     <Link to="..">
-                        <ArrowLeft /> Go Back
+                        <ArrowLeft />
                     </Link>
                 </Button>
                 <div className="text-3xl md:text-4xl font-bold">
@@ -177,9 +177,11 @@ function RouteComponent() {
                             state.isSubmitting || mutation.isPending,
                         ]}
                         children={([canSubmit, isSubmitting]) => (
-                            <Button type="submit" disabled={!canSubmit}>
-                                {isSubmitting ? "..." : "Submit"}
-                            </Button>
+                            <div>
+                                <Button type="submit" disabled={!canSubmit}>
+                                    {isSubmitting ? "..." : "Submit"}
+                                </Button>
+                            </div>
                         )}
                     />
                 </form>

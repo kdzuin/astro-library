@@ -37,7 +37,7 @@ export function DashboardPage({ userId }: DashboardPageProps) {
     return (
         <main className="w-full px-4 sm:px-6 lg:px-8 py-10 space-y-4">
             <div className="flex items-center gap-4">
-                <Button asChild variant="modest" size="icon">
+                <Button asChild>
                     <Link to="..">
                         <LucideArrowLeft />
                     </Link>

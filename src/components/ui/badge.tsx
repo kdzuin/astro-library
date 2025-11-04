@@ -5,16 +5,21 @@ import type React from "react";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-    "inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+    [
+        "inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none transition-[color,box-shadow] overflow-hidden",
+        "outline-none focus-visible:border-ring/30 focus-visible:ring-ring/30 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+    ],
     {
         variants: {
             variant: {
-                accent: "text-white shadow-xs bg-white/20 hover:bg-white/25 backdrop-blur-sm border-white/20 border-1",
-                modest: "text-white shadow-xs bg-white/5 hover:bg-white/10 backdrop-blur-sm border-white/20 border-1",
+                prominent:
+                    "text-white shadow-xs bg-white/20 hover:bg-white/25 backdrop-blur-sm border-white/20 border",
+                default:
+                    "text-white shadow-xs bg-white/5 hover:bg-white/10 backdrop-blur-sm border-white/20 border",
             },
         },
         defaultVariants: {
-            variant: "accent",
+            variant: "default",
         },
     },
 );

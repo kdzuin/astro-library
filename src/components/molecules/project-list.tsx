@@ -2,6 +2,7 @@ import { EntrySimple } from "@/components/molecules/entry-simple";
 import { EntryWithScale } from "@/components/molecules/entry-with-scale";
 import type { Project } from "@/schemas/project";
 import { Link } from "@tanstack/react-router";
+import { Button } from "../ui/button";
 
 interface ProjectList {
     projects: Project[];
@@ -13,13 +14,15 @@ export function ProjectList({ projects, variant }: ProjectList) {
         return (
             <ul className="flex gap-2 flex-wrap">
                 {projects.map((item) => (
-                    <Link
-                        to="/dashboard/projects/$projectId"
-                        params={{ projectId: item.id }}
-                        key={item.id}
-                    >
-                        <EntrySimple title={item.name} />
-                    </Link>
+                    <Button asChild key={item.id} size="small">
+                        <Link
+                            to="/dashboard/projects/$projectId"
+                            params={{ projectId: item.id }}
+                            key={item.id}
+                        >
+                            {item.name}
+                        </Link>
+                    </Button>
                 ))}
             </ul>
         );
@@ -32,6 +35,7 @@ export function ProjectList({ projects, variant }: ProjectList) {
                     to="/dashboard/projects/$projectId"
                     params={{ projectId: item.id }}
                     key={item.id}
+                    className="outline-none focus-visible:border-ring/30 focus-visible:ring-ring/30 focus-visible:ring-[3px] rounded-sm"
                 >
                     <EntryWithScale title={item.name} />
                 </Link>

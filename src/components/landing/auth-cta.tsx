@@ -26,7 +26,7 @@ export function AuthCTA({ isLoggedIn }: { isLoggedIn: boolean }) {
     if (isLoggedIn) {
         return (
             <>
-                <Button asChild variant="accent">
+                <Button asChild variant="prominent">
                     <Link to="/dashboard">Continue to Dashboard</Link>
                 </Button>
                 <Button onClick={handleSignOut}>Logout</Button>
