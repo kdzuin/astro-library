@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { Field } from "@/components/ui/field.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { sessionsQueryKeys } from "@/hooks/use-sessions-query.ts";
+import { useAuth } from "@/lib/client/auth-client";
 import { getUserId } from "@/lib/server/auth-server-func.ts";
 import { createSession } from "@/lib/server/functions/sessions.ts";
 import { revalidateLogic, useForm } from "@tanstack/react-form";
@@ -28,22 +29,6 @@ export const Route = createFileRoute(
     "/dashboard/projects/$projectId/sessions/new",
 )({
     component: RouteComponent,
-    beforeLoad: async ({ params }) => {
-        const userId = await getUserId();
-        return { userId, projectId: params.projectId };
-    },
-    loader: async ({ context }) => {
-        if (!context.userId) {
-            throw redirect({
-                to: "/",
-            });
-        }
-
-        return {
-            userId: context.userId,
-            projectId: context.projectId,
-        };
-    },
 });
 
 function concatError(errors: ZodIssue[]) {
@@ -51,7 +36,18 @@ function concatError(errors: ZodIssue[]) {
 }
 
 function RouteComponent() {
-    const { userId, projectId } = Route.useLoaderData();
+    const { projectId } = Route.useParams();
+    const { userId, isLoading } = useAuth();
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (!userId) {
+        throw redirect({
+            to: "/",
+        });
+    }
 
     const [submissionError, setSubmissionError] = useState<string | null>(null);
 
