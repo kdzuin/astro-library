@@ -69,6 +69,45 @@ export function ProjectByIdPage({ projectId }: { projectId: string }) {
                         </Button>
                     </CardFooter>
                 </Card>
+                <Card className="col-span-1 md:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Project Image Gallery</CardTitle>
+                        <CardDescription>
+                            Finished and 'work in progress' images for the
+                            project. It is nice to see the evolution of the
+                            result, try to upload images as you go on with your
+                            progress.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+                            <picture className="aspect-square w-full rounded-2xl overflow-hidden">
+                                <img
+                                    src="//picsum.photos/400?1"
+                                    alt="This is a test illustration"
+                                    className="object-cover w-full h-full"
+                                />
+                            </picture>
+                            <picture className="aspect-square w-full rounded-2xl overflow-hidden">
+                                <img
+                                    src="//picsum.photos/400?2"
+                                    alt="This is a test illustration"
+                                    className="object-cover w-full h-full"
+                                />
+                            </picture>
+                            <picture className="aspect-square w-full rounded-2xl overflow-hidden">
+                                <img
+                                    src="//picsum.photos/400?3"
+                                    alt="This is a test illustration"
+                                    className="object-cover w-full h-full"
+                                />
+                            </picture>
+                        </div>
+                    </CardContent>
+                    <CardFooter className="border-t">
+                        <Button>Upload new image</Button>
+                    </CardFooter>
+                </Card>
             </div>
         </main>
     );
